@@ -71,10 +71,64 @@ const DB = (function(){
     return (await r.json()).map(toEntry);
   }
 
+  /* The photo bucket is private, so an <img> cannot point straight at it.
+     Each path has to be exchanged for a short-lived signed link, and they
+     are asked for in one request rather than one per photograph. */
+  async function signPhotos(paths){
+    if (!paths.length) return {};
+    const r = await fetch(base + '/storage/v1/object/sign/photos', {
+      method:'POST', headers: headers(true),
+      body: JSON.stringify({ expiresIn: 3600, paths: paths })
+    });
+    if (!r.ok) return {};
+    const out = {};
+    (await r.json()).forEach(function(x){
+      if (x.signedURL) out[x.path] = base + '/storage/v1' + x.signedURL;
+    });
+    return out;
+  }
+
+  async function upload(file){
+    const dot = file.name.lastIndexOf('.');
+    const ext = dot > -1 ? file.name.slice(dot).toLowerCase() : '.jpg';
+    const path = Date.now().toString(36) + '-' +
+                 Math.random().toString(36).slice(2, 10) + ext;
+    const s = session();
+    const r = await fetch(base + '/storage/v1/object/photos/' + path, {
+      method:'POST',
+      headers: { apikey: SUPABASE.key, Authorization: 'Bearer ' + s.access_token,
+                 'Content-Type': file.type || 'application/octet-stream' },
+      body: file
+    });
+    if (!r.ok) throw new Error('could not upload ' + file.name);
+    return path;
+  }
+
+  async function add(entry){
+    const r = await fetch(base + '/rest/v1/entries', {
+      method:'POST',
+      headers: Object.assign(headers(true), { Prefer:'return=representation' }),
+      body: JSON.stringify({
+        happened_on: entry.date,
+        title:  entry.title || null,
+        author: entry.by || null,
+        place:  entry.place || null,
+        body:   entry.text || [],
+        quote:  entry.quote || null,
+        photos: entry.photos || []
+      })
+    });
+    if (!r.ok){
+      const e = await r.json().catch(function(){ return {}; });
+      throw new Error(e.message || 'could not save (' + r.status + ')');
+    }
+    return (await r.json())[0];
+  }
+
   return {
     configured: on,
     signIn: signIn, signOut: signOut, signedIn: signedIn, who: who,
-    entries: entries
+    entries: entries, add: add, upload: upload, signPhotos: signPhotos
   };
 })();
 
@@ -89,7 +143,19 @@ function loadStory(){
   }).then(function(){
     if (!DB.configured || !DB.signedIn()) return;      // the file's own STORY stands
     return DB.entries().then(function(rows){
-      if (rows.length) window.STORY = rows;            // the database wins once it has anything
+      if (!rows.length) return;                        // the file's own STORY stands
+      const paths = [];
+      rows.forEach(function(r){
+        (r.photos || []).forEach(function(p){ if (p.path) paths.push(p.path); });
+      });
+      return DB.signPhotos(paths).then(function(links){
+        rows.forEach(function(r){
+          r.photos = (r.photos || []).map(function(p){
+            return { src: p.path ? (links[p.path] || '') : p.src, caption: p.caption || '' };
+          }).filter(function(p){ return p.src; });
+        });
+        window.STORY = rows;                           // the database wins once it has anything
+      });
     }).catch(function(err){
       console.warn('falling back to story.js:', err.message);
     });

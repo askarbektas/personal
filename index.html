@@ -261,6 +261,74 @@ body::after{
 .box button:focus-visible{outline:2px solid #e6d9c4;outline-offset:2px}
 .box .of{color:#b0a08c;font-size:11.5px;letter-spacing:.1em;font-variant-numeric:tabular-nums}
 
+
+/* ---------------- signing in, and adding ---------------- */
+.whobar{
+  max-width:620px;margin:0 auto;padding:0 26px 46px 56px;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+}
+.whobar button{
+  background:none;border:0;padding:0;cursor:pointer;color:var(--gold);
+  font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  border-bottom:1px solid rgba(176,136,56,.4);
+}
+.whobar button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.whobar .me{font-style:italic;text-transform:none;letter-spacing:0;font-size:12.5px}
+
+.panel{
+  position:fixed;inset:0;z-index:70;background:rgba(36,28,23,.55);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  display:flex;align-items:flex-end;justify-content:center;padding:14px;
+  opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s;
+}
+.panel.open{opacity:1;visibility:visible}
+.panel .sheet{
+  width:100%;max-width:520px;max-height:92vh;overflow:auto;
+  background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  padding:26px 22px 24px;
+  transform:translateY(18px);transition:transform .25s cubic-bezier(.2,.8,.3,1);
+}
+.panel.open .sheet{transform:none}
+.panel h2{
+  font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 6px;
+}
+.panel .lede{font-size:14px;color:var(--muted);margin:0 0 20px;line-height:1.55}
+.panel label{
+  display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:18px 0 7px;
+}
+.panel input,.panel textarea,.panel select{
+  width:100%;font-family:var(--body);font-size:16.5px;font-weight:300;color:var(--ink);
+  background:#fdf8ee;border:1px solid var(--rule);border-radius:3px;padding:12px 13px;
+}
+.panel textarea{line-height:1.6;resize:vertical}
+.panel input:focus,.panel textarea:focus,.panel select:focus{
+  outline:2px solid var(--gold);outline-offset:1px;
+}
+.panel .who{display:flex;gap:8px;flex-wrap:wrap}
+.panel .who button{
+  flex:1 1 auto;font-family:var(--body);font-size:14.5px;padding:11px 8px;cursor:pointer;
+  background:#fdf8ee;border:1px solid var(--rule);border-radius:3px;color:var(--ink-2);
+}
+.panel .who button[aria-pressed="true"]{border-color:var(--gold);background:#faf1e0;color:var(--ink)}
+.panel .who button[aria-pressed="true"][data-v="asem"]{border-color:var(--madder);background:#fbf0ec}
+.panel .acts{display:flex;gap:10px;margin:26px 0 0;align-items:center}
+.panel .go{
+  flex:1;border:1px solid var(--gold);background:var(--gold);color:#fffaf0;
+  font-family:var(--body);font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+  padding:14px 16px;border-radius:3px;cursor:pointer;
+}
+.panel .go[disabled]{opacity:.5;cursor:default}
+.panel .cancel{
+  background:none;border:0;color:var(--muted);cursor:pointer;font-family:var(--body);
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:14px 6px;
+}
+.panel .said{font-size:13px;margin:14px 0 0;line-height:1.5;min-height:1.2em}
+.panel .said.bad{color:var(--madder)}
+.panel .said.ok{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){ .panel,.panel .sheet{transition:none} }
+
 /* ---------------- the end that isn't one ---------------- */
 .tail{max-width:620px;margin:0 auto;padding:0 26px 90px 56px;position:relative}
 .tail .line{
@@ -332,7 +400,12 @@ body::after{
   <p id="tail"></p>
 </div>
 
+<div class="whobar wrap" id="whobar"></div>
 <p class="colophon wrap" id="note"></p>
+
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
+  <div class="sheet" id="panelSheet"></div>
+</div>
 
 <div class="box" id="box" role="dialog" aria-modal="true" aria-label="Photograph" hidden>
   <img id="boxImg" alt="">
@@ -653,6 +726,180 @@ if (typeof loadStory === 'function'){
 } else {
   boot();
 }
+</script>
+
+<script>
+/* ================= signing in, and adding a memory =================
+   Deliberately quiet: the two people who own this page know it is here,
+   and nobody else can do anything with it. Everything below is inert
+   unless config.js names a project. */
+(function(){
+  if (typeof DB === 'undefined' || !DB.configured) return;
+
+  const bar    = document.getElementById('whobar');
+  const panel  = document.getElementById('panel');
+  const sheet  = document.getElementById('panelSheet');
+  const NAMES  = (typeof SITE !== 'undefined' && SITE.names) || { askar:'Askar', asem:'Asem' };
+  let lastFocus = null;
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' })[c]; }); }
+
+  function openPanel(html, ready){
+    lastFocus = document.activeElement;
+    sheet.innerHTML = html;
+    panel.hidden = false;
+    requestAnimationFrame(function(){ panel.classList.add('open'); });
+    if (ready) ready();
+    const first = sheet.querySelector('input,button');
+    if (first) first.focus();
+  }
+  function closePanel(){
+    panel.classList.remove('open');
+    setTimeout(function(){ panel.hidden = true; sheet.innerHTML = '';
+      if (lastFocus) lastFocus.focus(); }, 250);
+  }
+  panel.addEventListener('click', function(e){ if (e.target === panel) closePanel(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && !panel.hidden) closePanel();
+  });
+
+  /* ---------- the bar at the foot of the page ---------- */
+  function drawBar(){
+    bar.innerHTML = '';
+    if (!DB.signedIn()){
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = 'Sign in';
+      b.addEventListener('click', signInForm);
+      bar.appendChild(b);
+      return;
+    }
+    const me = document.createElement('span');
+    me.className = 'me'; me.textContent = DB.who() || 'signed in';
+    const add = document.createElement('button');
+    add.type = 'button'; add.textContent = 'Add a memory';
+    add.addEventListener('click', addForm);
+    const out = document.createElement('button');
+    out.type = 'button'; out.textContent = 'Sign out';
+    out.addEventListener('click', function(){ DB.signOut(); location.reload(); });
+    bar.appendChild(me); bar.appendChild(add); bar.appendChild(out);
+  }
+
+  /* ---------- sign in ---------- */
+  function signInForm(){
+    openPanel(
+      '<h2 id="panelTitle">Sign in</h2>' +
+      '<p class="lede">Only the two of you have an account here.</p>' +
+      '<label for="pEmail">Email</label>' +
+      '<input id="pEmail" type="email" autocomplete="email" inputmode="email">' +
+      '<label for="pPass">Password</label>' +
+      '<input id="pPass" type="password" autocomplete="current-password">' +
+      '<div class="acts"><button class="go" id="pGo" type="button">Sign in</button>' +
+      '<button class="cancel" type="button" id="pCancel">Cancel</button></div>' +
+      '<p class="said" id="pSaid"></p>',
+      function(){
+        const said = document.getElementById('pSaid');
+        const go   = document.getElementById('pGo');
+        document.getElementById('pCancel').addEventListener('click', closePanel);
+        function submit(){
+          const email = document.getElementById('pEmail').value.trim();
+          const pass  = document.getElementById('pPass').value;
+          if (!email || !pass){ said.className = 'said bad'; said.textContent = 'Both, please.'; return; }
+          go.disabled = true; said.className = 'said ok'; said.textContent = 'One moment…';
+          DB.signIn(email, pass).then(function(){ location.reload(); })
+            .catch(function(err){
+              go.disabled = false;
+              said.className = 'said bad';
+              said.textContent = err.message;
+            });
+        }
+        go.addEventListener('click', submit);
+        sheet.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+      });
+  }
+
+  /* ---------- add a memory ---------- */
+  function addForm(){
+    const today = new Date();
+    const pad = function(n){ return String(n).padStart(2,'0'); };
+    const iso = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate());
+
+    openPanel(
+      '<h2 id="panelTitle">Add a memory</h2>' +
+      '<p class="lede">It appears on the thread in date order, wherever it belongs.</p>' +
+      '<label for="aDate">Date</label><input id="aDate" type="date" value="' + iso + '">' +
+      '<label for="aTitle">Title</label><input id="aTitle" type="text" autocomplete="off">' +
+      '<label>Whose memory is it?</label>' +
+      '<div class="who" id="aWho">' +
+        '<button type="button" data-v="" aria-pressed="true">Both of us</button>' +
+        '<button type="button" data-v="askar" aria-pressed="false">' + esc(NAMES.askar) + '</button>' +
+        '<button type="button" data-v="asem" aria-pressed="false">' + esc(NAMES.asem) + '</button>' +
+      '</div>' +
+      '<label for="aPlace">Place</label><input id="aPlace" type="text" autocomplete="off">' +
+      '<label for="aText">What happened</label>' +
+      '<textarea id="aText" rows="5"></textarea>' +
+      '<label for="aQuote">Something one of you said</label>' +
+      '<input id="aQuote" type="text" autocomplete="off">' +
+      '<select id="aQuoteBy"><option value="">—</option>' +
+        '<option value="askar">' + esc(NAMES.askar) + '</option>' +
+        '<option value="asem">' + esc(NAMES.asem) + '</option></select>' +
+      '<label for="aPhotos">Photographs</label>' +
+      '<input id="aPhotos" type="file" accept="image/*" multiple>' +
+      '<div class="acts"><button class="go" id="aGo" type="button">Save</button>' +
+      '<button class="cancel" type="button" id="aCancel">Cancel</button></div>' +
+      '<p class="said" id="aSaid"></p>',
+      function(){
+        let who = '';
+        const said = document.getElementById('aSaid');
+        const go   = document.getElementById('aGo');
+        document.getElementById('aCancel').addEventListener('click', closePanel);
+        document.getElementById('aWho').addEventListener('click', function(e){
+          const b = e.target.closest('button'); if (!b) return;
+          who = b.dataset.v;
+          this.querySelectorAll('button').forEach(function(x){
+            x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+          });
+        });
+
+        go.addEventListener('click', async function(){
+          const date = document.getElementById('aDate').value;
+          if (!date){ said.className = 'said bad'; said.textContent = 'A date, at least.'; return; }
+          const files = Array.prototype.slice.call(document.getElementById('aPhotos').files || []);
+          go.disabled = true;
+          said.className = 'said ok';
+
+          try {
+            const photos = [];
+            for (let i = 0; i < files.length; i++){
+              said.textContent = 'Sending photograph ' + (i+1) + ' of ' + files.length + '…';
+              photos.push({ path: await DB.upload(files[i]), caption: '' });
+            }
+            said.textContent = 'Saving…';
+            const quote = document.getElementById('aQuote').value.trim();
+            await DB.add({
+              date:  date,
+              title: document.getElementById('aTitle').value.trim(),
+              by:    who || null,
+              place: document.getElementById('aPlace').value.trim() || null,
+              text:  document.getElementById('aText').value
+                       .split(/\n\s*\n/).map(function(t){ return t.trim().replace(/\s*\n\s*/g,' '); })
+                       .filter(Boolean),
+              quote: quote ? { text: quote, by: document.getElementById('aQuoteBy').value || null } : null,
+              photos: photos
+            });
+            said.textContent = 'Saved.';
+            location.reload();
+          } catch (err){
+            go.disabled = false;
+            said.className = 'said bad';
+            said.textContent = err.message;
+          }
+        });
+      });
+  }
+
+  drawBar();
+})();
 </script>
 </body>
 </html>
