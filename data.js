@@ -44,6 +44,21 @@ const DB = (function(){
     return body;
   }
 
+  /* Creating the two accounts without going near the dashboard. This only
+     works while the project allows sign-ups, which is meant to be switched
+     on for the few minutes it takes and then switched off again. */
+  async function signUp(email, password){
+    const r = await fetch(base + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { apikey: SUPABASE.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    const body = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(body.error_description || body.msg || body.error || 'Could not create the account');
+    if (body.access_token){ remember(body); return { signedIn: true }; }
+    return { signedIn: false };          // the project is asking for email confirmation
+  }
+
   function signOut(){ remember(null); }
   function signedIn(){ const s = session(); return !!(s && s.access_token); }
   function who(){ const s = session(); return s && s.user ? s.user.email : null; }
@@ -127,7 +142,7 @@ const DB = (function(){
 
   return {
     configured: on,
-    signIn: signIn, signOut: signOut, signedIn: signedIn, who: who,
+    signIn: signIn, signUp: signUp, signOut: signOut, signedIn: signedIn, who: who,
     entries: entries, add: add, upload: upload, signPhotos: signPhotos
   };
 })();

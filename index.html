@@ -327,6 +327,12 @@ body::after{
 .panel .said{font-size:13px;margin:14px 0 0;line-height:1.5;min-height:1.2em}
 .panel .said.bad{color:var(--madder)}
 .panel .said.ok{color:var(--muted)}
+.panel .asLink{
+  background:none;border:0;padding:0;cursor:pointer;color:var(--gold);
+  font-family:var(--body);font-size:13px;
+  border-bottom:1px solid rgba(176,136,56,.4);
+}
+.panel .asLink:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){ .panel,.panel .sheet{transition:none} }
 
 /* ---------------- the end that isn't one ---------------- */
@@ -796,7 +802,8 @@ if (typeof loadStory === 'function'){
       '<input id="pPass" type="password" autocomplete="current-password">' +
       '<div class="acts"><button class="go" id="pGo" type="button">Sign in</button>' +
       '<button class="cancel" type="button" id="pCancel">Cancel</button></div>' +
-      '<p class="said" id="pSaid"></p>',
+      '<p class="said" id="pSaid"></p>' +
+      '<p class="said"><button type="button" id="pMake" class="asLink">Create an account instead</button></p>',
       function(){
         const said = document.getElementById('pSaid');
         const go   = document.getElementById('pGo');
@@ -815,6 +822,48 @@ if (typeof loadStory === 'function'){
         }
         go.addEventListener('click', submit);
         sheet.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+        document.getElementById('pMake').addEventListener('click', makeForm);
+      });
+  }
+
+  /* ---------- making the two accounts ---------- */
+  function makeForm(){
+    openPanel(
+      '<h2 id="panelTitle">Create an account</h2>' +
+      '<p class="lede">One for each of you. The project has to be allowing ' +
+        'sign-ups for this to work — turn that off again once you are both in.</p>' +
+      '<label for="mEmail">Email</label>' +
+      '<input id="mEmail" type="email" autocomplete="email" inputmode="email">' +
+      '<label for="mPass">Password <span style="text-transform:none;letter-spacing:0">— at least 8 characters</span></label>' +
+      '<input id="mPass" type="password" autocomplete="new-password">' +
+      '<div class="acts"><button class="go" id="mGo" type="button">Create it</button>' +
+      '<button class="cancel" type="button" id="mCancel">Back</button></div>' +
+      '<p class="said" id="mSaid"></p>',
+      function(){
+        const said = document.getElementById('mSaid');
+        const go   = document.getElementById('mGo');
+        document.getElementById('mCancel').addEventListener('click', signInForm);
+        go.addEventListener('click', function(){
+          const email = document.getElementById('mEmail').value.trim();
+          const pass  = document.getElementById('mPass').value;
+          if (!email || pass.length < 8){
+            said.className = 'said bad';
+            said.textContent = 'An email, and a password of at least 8 characters.';
+            return;
+          }
+          go.disabled = true; said.className = 'said ok'; said.textContent = 'One moment…';
+          DB.signUp(email, pass).then(function(res){
+            if (res.signedIn){ location.reload(); return; }
+            said.className = 'said ok';
+            said.textContent = 'Made. The project wants the address confirmed by email — ' +
+                               'open that link, then sign in.';
+            go.disabled = false;
+          }).catch(function(err){
+            go.disabled = false;
+            said.className = 'said bad';
+            said.textContent = err.message;
+          });
+        });
       });
   }
 
