@@ -63,9 +63,7 @@ const STORY = [
   {
     date:  '2026-08-31',
     title: 'The first time we meet',
-    text: [
-      'Fill this in afterwards.'
-    ],
+    text: [],
     photos: []
   }
 

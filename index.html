@@ -359,7 +359,14 @@ function milestones(){
     if (on > addMonths(last, 1)) break;
     out.push({ on: on, label: y === 1 ? 'one year' : y + ' years' });
   }
-  return out;
+  out.sort(function(a, b){ return a.on - b.on; });
+
+  /* only what has actually been reached, plus the one coming next.
+     A timeline that plots years ahead of two people who have not met
+     yet is a promise the page has no business making on their behalf. */
+  const reached = out.filter(function(m){ return m.on <= TODAY; });
+  const next    = out.find(function(m){ return m.on > TODAY; });
+  return next ? reached.concat([next]) : reached;
 }
 
 /* ---- everything on the thread, in date order ---- */
