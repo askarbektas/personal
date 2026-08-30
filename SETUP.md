@@ -23,61 +23,17 @@ Supabase is free at this size and stays free.
 
 ## 2. Create the table and the photo bucket
 
-Open **SQL Editor** in the left sidebar, paste all of this in, and press Run.
+Open **SQL Editor** in the left sidebar. Clear whatever is in it, then open
+the file `supabase-setup.sql` from this repository, copy its whole contents,
+paste, and press Run.
 
-```sql
--- one row per memory
-create table public.entries (
-  id          uuid primary key default gen_random_uuid(),
-  happened_on date not null,
-  title       text,
-  author      text check (author in ('askar','asem')),
-  place       text,
-  body        jsonb not null default '[]'::jsonb,   -- array of paragraphs
-  quote       jsonb,                                -- { text, by }
-  photos      jsonb not null default '[]'::jsonb,   -- [{ path, caption }]
-  created_at  timestamptz not null default now(),
-  created_by  uuid references auth.users(id) default auth.uid()
-);
+Copy from the `.sql` file, not from this page — pasting the prose around the
+SQL is what makes the editor fail with `syntax error at or near "Open"`.
 
-create index entries_happened_on_idx on public.entries (happened_on);
-
--- nobody reaches this table without being signed in
-alter table public.entries enable row level security;
-
-create policy "signed in can read"
-  on public.entries for select
-  to authenticated using (true);
-
-create policy "signed in can add"
-  on public.entries for insert
-  to authenticated with check (true);
-
-create policy "signed in can edit"
-  on public.entries for update
-  to authenticated using (true) with check (true);
-
-create policy "signed in can delete"
-  on public.entries for delete
-  to authenticated using (true);
-
--- a private bucket for the photographs
-insert into storage.buckets (id, name, public)
-values ('photos', 'photos', false)
-on conflict (id) do nothing;
-
-create policy "signed in can read photos"
-  on storage.objects for select
-  to authenticated using (bucket_id = 'photos');
-
-create policy "signed in can upload photos"
-  on storage.objects for insert
-  to authenticated with check (bucket_id = 'photos');
-
-create policy "signed in can delete photos"
-  on storage.objects for delete
-  to authenticated using (bucket_id = 'photos');
-```
+If the three `storage.objects` policies at the end fail with *must be owner of
+table objects*, the rest has still worked. Create those three in the dashboard
+instead: **Storage → photos → Policies → New policy**, one each for SELECT,
+INSERT and DELETE, target role `authenticated`.
 
 Everything is locked to `authenticated`. Nobody who is not signed in can read a
 single row or open a single photograph, even with the link.
