@@ -89,13 +89,19 @@ body::after{
 
 /* ---------------- the cover ---------------- */
 .mast{
-  min-height:82svh;min-height:82vh;
+  min-height:92svh;min-height:92vh;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:40px 26px 30px;text-align:center;position:relative;
 }
-.mast .orn{color:var(--gold);opacity:.85;margin:0 0 26px}
+.mast .art{
+  display:block;width:min(64vw,270px);height:auto;margin:0 0 6px;
+  /* the drawing has no ground of its own: it was cut to transparency and
+     recoloured in the ink of the type, so it sits on the paper and the
+     grain shows through it */
+}
+.mast .orn{color:var(--gold);opacity:.85;margin:14px 0 22px}
 .mast h1{
-  font-family:var(--display);font-weight:300;font-size:74px;line-height:.92;
+  font-family:var(--display);font-weight:300;font-size:66px;line-height:.92;
   margin:0;letter-spacing:-.02em;
 }
 .mast .sub{
@@ -243,7 +249,8 @@ body::after{
 @media (min-width:620px){
   .opening .ar{font-size:29px}
   .opening .meaning{font-size:21px}
-  .mast h1{font-size:104px}
+  .mast h1{font-size:92px}
+  .mast .art{width:min(46vw,320px)}
   .mast .count{font-size:32px}
   .entry h2{font-size:28px}
   .story{padding-left:34px;padding-right:34px}
@@ -263,6 +270,8 @@ body::after{
 </header>
 
 <div class="mast wrap">
+  <img class="art" src="images/cover.png" width="1086" height="1448"
+       alt="Two people sitting side by side under a night sky, drawn in line">
   <svg class="orn" width="46" height="12" viewBox="0 0 46 12" aria-hidden="true">
     <path d="M0 6h15M31 6h15" stroke="currentColor" stroke-width="1"/>
     <path d="M23 1.4c.9 1.9 2.7 3.7 4.6 4.6-1.9.9-3.7 2.7-4.6 4.6-.9-1.9-2.7-3.7-4.6-4.6 1.9-.9 3.7-2.7 4.6-4.6Z"
