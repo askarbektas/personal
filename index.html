@@ -81,7 +81,15 @@ body::after{
   font-size:11px;letter-spacing:.2em;text-transform:uppercase;
   color:var(--gold);margin:0;font-family:var(--body);
 }
-.opening .note{font-size:10.5px;color:var(--faint);margin:34px 0 0;font-style:italic}
+.opening .line{
+  font-family:var(--display);font-style:italic;font-weight:300;
+  font-size:17.5px;line-height:1.5;color:var(--muted);
+  margin:38px 0 0;max-width:28ch;
+}
+.colophon{
+  max-width:620px;margin:0 auto;padding:0 26px 40px 56px;
+  font-size:10.5px;line-height:1.6;color:var(--faint);font-style:italic;
+}
 .opening .down{
   margin-top:46px;width:1px;height:56px;
   background:linear-gradient(var(--gold),transparent);
@@ -265,7 +273,7 @@ body::after{
   <p class="ar" id="ar"></p>
   <p class="meaning" id="meaning"></p>
   <p class="ref" id="ref"></p>
-  <p class="note" id="note"></p>
+  <p class="line" id="line"></p>
   <div class="down" aria-hidden="true"></div>
 </header>
 
@@ -290,6 +298,8 @@ body::after{
   <div class="line" aria-hidden="true"></div>
   <p id="tail"></p>
 </div>
+
+<p class="colophon wrap" id="note"></p>
 
 <div class="box" id="box" role="dialog" aria-modal="true" aria-label="Photograph" hidden>
   <img id="boxImg" alt="">
@@ -333,7 +343,8 @@ const NAMES = SITE.names || {};
 $('ar').textContent        = SITE.opening.arabic;
 $('meaning').textContent   = SITE.opening.meaning;
 $('ref').textContent       = SITE.opening.ref;
-$('note').textContent      = SITE.opening.note;
+$('note').textContent      = SITE.opening.note || '';
+$('line').textContent      = SITE.opening.line || '';
 $('siteTitle').textContent = SITE.title;
 $('siteSub').textContent   = SITE.subtitle;
 $('tail').textContent      = SITE.tail || 'To be continued.';

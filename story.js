@@ -35,7 +35,14 @@ const SITE = {
     arabic:  'هُوَ الَّذِي خَلَقَكُم مِّن نَّفْسٍ وَاحِدَةٍ وَجَعَلَ مِنْهَا زَوْجَهَا لِيَسْكُنَ إِلَيْهَا',
     meaning: 'It is He who created you from a single soul, and made from it its companion — so that he might find his rest in her.',
     ref:     'Al-A‘rāf 7:189',
-    note:    'A rendering of the meaning, written for this page.'
+
+    /* the line that says what this place is for */
+    line:    'This is where our story is kept.',
+
+    /* the small print, set at the very bottom of the page.
+       The English above is written for this page rather than taken
+       from a published translation. */
+    note:    'The English rendering of the verse was written for this page.'
   }
 };
 
