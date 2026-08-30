@@ -173,6 +173,7 @@ function loadStory(){
   }).then(function(){
     if (!DB.configured || !DB.signedIn()) return;      // the file's own STORY stands
     return DB.entries().then(function(rows){
+      window.__dbEmpty = rows.length === 0;            // the page offers to fill it
       if (!rows.length) return;                        // the file's own STORY stands
       const paths = [];
       rows.forEach(function(r){

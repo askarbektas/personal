@@ -725,7 +725,12 @@ document.addEventListener('keydown', function(e){
 
 /* one seam: a data source may load asynchronously before the page draws */
 if (typeof loadStory === 'function'){
-  loadStory().then(boot).catch(function(err){
+  /* the foot of the page is drawn twice: once immediately, and again once
+     the story has loaded, because only then is it known whether the
+     database is empty */
+  loadStory().then(boot).then(function(){
+    if (window.__redrawBar) window.__redrawBar();
+  }).catch(function(err){
     console.error('could not load the story', err);
     if (typeof STORY !== 'undefined') boot();
   });
@@ -782,13 +787,42 @@ if (typeof loadStory === 'function'){
     }
     const me = document.createElement('span');
     me.className = 'me'; me.textContent = DB.who() || 'signed in';
+
     const add = document.createElement('button');
     add.type = 'button'; add.textContent = 'Add a memory';
     add.addEventListener('click', addForm);
+
     const out = document.createElement('button');
     out.type = 'button'; out.textContent = 'Sign out';
     out.addEventListener('click', function(){ DB.signOut(); location.reload(); });
-    bar.appendChild(me); bar.appendChild(add); bar.appendChild(out);
+
+    bar.appendChild(me);
+    bar.appendChild(add);
+
+    /* The first sign-in finds an empty database while the entries still live
+       in story.js. Without this, adding the first memory would make those
+       quietly disappear, because the file is only ever a fallback. */
+    if (window.__dbEmpty && typeof STORY !== 'undefined' && STORY.length){
+      const move = document.createElement('button');
+      move.type = 'button';
+      move.textContent = 'Move the ' + STORY.length + ' entries here';
+      move.addEventListener('click', function(){
+        move.disabled = true;
+        move.textContent = 'Moving…';
+        (async function(){
+          try {
+            for (const s of STORY) await DB.add(s);
+            location.reload();
+          } catch (err){
+            move.disabled = false;
+            move.textContent = err.message;
+          }
+        })();
+      });
+      bar.appendChild(move);
+    }
+
+    bar.appendChild(out);
   }
 
   /* ---------- sign in ---------- */
@@ -947,6 +981,7 @@ if (typeof loadStory === 'function'){
       });
   }
 
+  window.__redrawBar = drawBar;
   drawBar();
 })();
 </script>
