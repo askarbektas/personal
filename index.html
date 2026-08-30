@@ -327,6 +327,13 @@ body::after{
 .panel .said{font-size:13px;margin:14px 0 0;line-height:1.5;min-height:1.2em}
 .panel .said.bad{color:var(--madder)}
 .panel .said.ok{color:var(--muted)}
+.entry .remove{
+  display:inline-block;margin:18px 0 0;background:none;cursor:pointer;
+  border:1px solid rgba(158,59,46,.35);border-radius:2px;color:var(--madder);
+  font-family:var(--body);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  padding:6px 11px;
+}
+.entry .remove:focus-visible{outline:2px solid var(--madder);outline-offset:2px}
 .panel .asLink{
   background:none;border:0;padding:0;cursor:pointer;color:var(--gold);
   font-family:var(--body);font-size:13px;
@@ -799,19 +806,26 @@ if (typeof loadStory === 'function'){
     bar.appendChild(me);
     bar.appendChild(add);
 
-    /* The first sign-in finds an empty database while the entries still live
-       in story.js. Without this, adding the first memory would make those
-       quietly disappear, because the file is only ever a fallback. */
-    if (window.__dbEmpty && typeof STORY !== 'undefined' && STORY.length){
+    /* story.js is only ever a fallback, so anything still living there is
+       invisible the moment the database holds a single row. Offer to move
+       across whatever has not made it, however many rows are already in. */
+    const inDb = window.__dbRows || [];
+    const missing = (window.__fileStory || []).filter(function(f){
+      return !inDb.some(function(d){
+        return d.date === f.date && (d.title || '') === (f.title || '');
+      });
+    });
+    if (missing.length){
       const move = document.createElement('button');
       move.type = 'button';
-      move.textContent = 'Move the ' + STORY.length + ' entries here';
+      move.textContent = 'Move ' + missing.length +
+                         (missing.length === 1 ? ' entry' : ' entries') + ' here';
       move.addEventListener('click', function(){
         move.disabled = true;
         move.textContent = 'Moving…';
         (async function(){
           try {
-            for (const s of STORY) await DB.add(s);
+            for (const s of missing) await DB.add(s);
             location.reload();
           } catch (err){
             move.disabled = false;
@@ -982,6 +996,32 @@ if (typeof loadStory === 'function'){
   }
 
   window.__redrawBar = drawBar;
+  /* removing one: only ever offered on a row that came from the database,
+     because a row that came from the file has nothing to remove */
+  function addRemovers(){
+    if (!DB.signedIn()) return;
+    const rows = window.__dbRows || [];
+    if (!rows.length) return;
+    document.querySelectorAll('.entry').forEach(function(el, i){
+      const row = rows[i];
+      if (!row || !row.id || el.querySelector('.remove')) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'remove'; b.textContent = 'Remove';
+      b.addEventListener('click', function(){
+        if (b.dataset.sure !== '1'){
+          b.dataset.sure = '1'; b.textContent = 'Really remove it?';
+          setTimeout(function(){ b.dataset.sure = ''; b.textContent = 'Remove'; }, 4000);
+          return;
+        }
+        b.disabled = true; b.textContent = 'Removing…';
+        DB.remove(row.id).then(function(){ location.reload(); })
+          .catch(function(err){ b.disabled = false; b.textContent = err.message; });
+      });
+      el.appendChild(b);
+    });
+  }
+
+  window.__redrawBar = function(){ drawBar(); addRemovers(); };
   drawBar();
 })();
 </script>

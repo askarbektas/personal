@@ -134,6 +134,13 @@ const DB = (function(){
     return path;
   }
 
+  async function remove(id){
+    const r = await fetch(base + '/rest/v1/entries?id=eq.' + encodeURIComponent(id), {
+      method:'DELETE', headers: headers(true)
+    });
+    if (!r.ok) throw new Error('could not remove it (' + r.status + ')');
+  }
+
   async function add(entry){
     const r = await fetch(base + '/rest/v1/entries', {
       method:'POST',
@@ -158,7 +165,7 @@ const DB = (function(){
   return {
     configured: on,
     signIn: signIn, signUp: signUp, signOut: signOut, signedIn: signedIn, who: who,
-    entries: entries, add: add, upload: upload, signPhotos: signPhotos
+    entries: entries, add: add, remove: remove, upload: upload, signPhotos: signPhotos
   };
 })();
 
@@ -172,8 +179,12 @@ function loadStory(){
     document.head.appendChild(el);
   }).then(function(){
     if (!DB.configured || !DB.signedIn()) return;      // the file's own STORY stands
+    /* keep the file's own entries: the page compares them with what the
+       database holds so it can offer to move across whatever is missing,
+       not only on the first sign-in */
+    window.__fileStory = (typeof STORY !== 'undefined') ? STORY.slice() : [];
     return DB.entries().then(function(rows){
-      window.__dbEmpty = rows.length === 0;            // the page offers to fill it
+      window.__dbRows = rows;
       if (!rows.length) return;                        // the file's own STORY stands
       const paths = [];
       rows.forEach(function(r){
