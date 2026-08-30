@@ -91,8 +91,17 @@ body::after{
   font-size:10.5px;line-height:1.6;color:var(--faint);font-style:italic;
 }
 .opening .down{
-  margin-top:46px;width:1px;height:56px;
-  background:linear-gradient(var(--gold),transparent);
+  margin-top:44px;display:flex;flex-direction:column;align-items:center;gap:9px;
+  color:var(--gold);
+}
+.opening .down .stem{
+  width:1px;height:46px;
+  background:linear-gradient(var(--gold),rgba(176,136,56,.15));
+}
+.opening .down svg{animation:drift 2.6s ease-in-out infinite}
+@keyframes drift{
+  0%,100%{transform:translateY(-2px);opacity:.35}
+  50%    {transform:translateY(3px); opacity:.9}
 }
 
 /* ---------------- the cover ---------------- */
@@ -253,6 +262,7 @@ body::after{
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none;transition:none}
   .box{transition:none}
+  .opening .down svg{animation:none;opacity:.75}
 }
 @media (min-width:620px){
   .opening .ar{font-size:29px}
@@ -274,7 +284,13 @@ body::after{
   <p class="meaning" id="meaning"></p>
   <p class="ref" id="ref"></p>
   <p class="line" id="line"></p>
-  <div class="down" aria-hidden="true"></div>
+  <div class="down" aria-hidden="true">
+    <div class="stem"></div>
+    <svg width="15" height="9" viewBox="0 0 15 9">
+      <path d="M1 1l6.5 6.5L14 1" fill="none" stroke="currentColor"
+            stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
 </header>
 
 <div class="mast wrap">
@@ -312,7 +328,20 @@ body::after{
   </div>
 </div>
 
-<script src="story.js"></script>
+<script>
+/* story.js is fetched with a cache-busting stamp. Without it a browser
+   holds on to the copy it already has, and a memory added minutes ago
+   does not appear - which is exactly the file that changes most often. */
+function loadStory(){
+  return new Promise(function(resolve, reject){
+    const el = document.createElement('script');
+    el.src = 'story.js?t=' + Date.now();
+    el.onload = resolve;
+    el.onerror = function(){ reject(new Error('story.js did not load')); };
+    document.head.appendChild(el);
+  });
+}
+</script>
 <script>
 /* ================= render the page =================
    Everything below runs inside boot(). The story reaches it as the
