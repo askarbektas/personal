@@ -42,6 +42,26 @@ body{
 }
 img{max-width:100%}
 
+/* the page is paper: give it tooth, a shadowed gutter and a ruled edge */
+body::before{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.05;mix-blend-mode:multiply;
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 45%, transparent 58%, rgba(120,92,52,.16) 100%);
+}
+.edge{
+  position:fixed;z-index:2;pointer-events:none;
+  top:9px;left:9px;right:9px;bottom:9px;
+  border:1px solid rgba(176,136,56,.26);
+}
+.edge::before{
+  content:"";position:absolute;inset:4px;border:1px solid rgba(176,136,56,.12);
+}
+.wrap{position:relative;z-index:3}
+
 /* ---------------- opening ---------------- */
 .opening{
   min-height:100svh;min-height:100vh;
@@ -67,20 +87,33 @@ img{max-width:100%}
   background:linear-gradient(var(--gold),transparent);
 }
 
-/* ---------------- masthead ---------------- */
-.mast{padding:20px 26px 6px;text-align:center}
+/* ---------------- the cover ---------------- */
+.mast{
+  min-height:82svh;min-height:82vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 26px 30px;text-align:center;position:relative;
+}
+.mast .orn{color:var(--gold);opacity:.85;margin:0 0 26px}
 .mast h1{
-  font-family:var(--display);font-weight:300;font-size:38px;line-height:1;
-  margin:0;letter-spacing:-.005em;
+  font-family:var(--display);font-weight:300;font-size:74px;line-height:.92;
+  margin:0;letter-spacing:-.02em;
 }
 .mast .sub{
-  font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--muted);margin:14px 0 0;
+  font-size:12px;letter-spacing:.4em;text-transform:uppercase;
+  color:var(--muted);margin:26px 0 0;text-indent:.4em;
+}
+.mast .hr{
+  width:120px;height:1px;margin:30px 0 0;
+  background:linear-gradient(90deg,transparent,rgba(176,136,56,.75),transparent);
 }
 .mast .count{
-  font-family:var(--display);font-style:italic;font-size:16px;
-  color:var(--gold);margin:10px 0 0;
+  font-family:var(--display);font-style:italic;font-size:27px;
+  color:var(--gold);margin:26px 0 0;
   letter-spacing:0;text-transform:none;   /* .mast .sub sets both; don't inherit them */
+}
+.mast .since{
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);margin:12px 0 0;font-variant-numeric:tabular-nums;
 }
 
 /* ---------------- the thread ---------------- */
@@ -210,7 +243,8 @@ img{max-width:100%}
 @media (min-width:620px){
   .opening .ar{font-size:29px}
   .opening .meaning{font-size:21px}
-  .mast h1{font-size:52px}
+  .mast h1{font-size:104px}
+  .mast .count{font-size:32px}
   .entry h2{font-size:28px}
   .story{padding-left:34px;padding-right:34px}
   .shots img{height:170px}
@@ -218,8 +252,9 @@ img{max-width:100%}
 </style>
 </head>
 <body>
+<div class="edge" aria-hidden="true"></div>
 
-<header class="opening">
+<header class="opening wrap">
   <p class="ar" id="ar"></p>
   <p class="meaning" id="meaning"></p>
   <p class="ref" id="ref"></p>
@@ -227,15 +262,22 @@ img{max-width:100%}
   <div class="down" aria-hidden="true"></div>
 </header>
 
-<div class="mast">
+<div class="mast wrap">
+  <svg class="orn" width="46" height="12" viewBox="0 0 46 12" aria-hidden="true">
+    <path d="M0 6h15M31 6h15" stroke="currentColor" stroke-width="1"/>
+    <path d="M23 1.4c.9 1.9 2.7 3.7 4.6 4.6-1.9.9-3.7 2.7-4.6 4.6-.9-1.9-2.7-3.7-4.6-4.6 1.9-.9 3.7-2.7 4.6-4.6Z"
+          fill="none" stroke="currentColor" stroke-width="1"/>
+  </svg>
   <h1 id="siteTitle"></h1>
   <p class="sub" id="siteSub"></p>
+  <div class="hr"></div>
   <p class="count" id="siteCount"></p>
+  <p class="since" id="siteSince"></p>
 </div>
 
-<main class="story" id="story"></main>
+<main class="story wrap" id="story"></main>
 
-<div class="tail">
+<div class="tail wrap">
   <div class="line" aria-hidden="true"></div>
   <p id="tail"></p>
 </div>
@@ -290,6 +332,7 @@ $('tail').textContent      = SITE.tail || 'To be continued.';
 (function(){
   const days = Math.floor((TODAY - START) / DAY) + 1;
   $('siteCount').textContent = days > 0 ? 'Day ' + days : 'begins ' + longDate(START);
+  $('siteSince').textContent = 'since ' + longDate(START);
 })();
 
 /* ---- label for a date that has not arrived ---- */
