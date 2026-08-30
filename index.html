@@ -155,14 +155,17 @@ body::after{
 
 /* the path the thread will take, and the thread itself drawn over it */
 .story .thread{position:absolute;width:1px;pointer-events:none;z-index:0}
-.story .thread i{display:block;width:1px;height:0;background:var(--gold)}
+.story .thread i{
+  display:block;width:1px;height:0;background:var(--gold);
+  box-shadow:0 0 0 .6px rgba(176,136,56,.35);   /* laid over the path, not beside it */
+}
 .entry{padding-bottom:54px}
 .mark{padding-bottom:38px}
 
 /* the thread runs down the left of everything on it */
 .entry::before,.mark::before{
   content:"";position:absolute;left:5px;top:8px;bottom:-8px;width:1px;
-  background:var(--gold);opacity:.15;
+  background:var(--gold);opacity:.3;
 }
 .entry.future::before,.mark.future::before{
   background:none;border-left:1px dashed var(--gold);width:0;opacity:.42;
