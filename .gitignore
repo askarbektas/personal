@@ -2,6 +2,8 @@ node_modules/
 
 # Screenshots and working files — not part of the site.
 *.png
+# …but the artwork the site actually serves is not a screenshot.
+!images/*.png
 
 # Local drafts, kept off the remote.
 areket.html

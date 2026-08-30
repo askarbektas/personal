@@ -33,7 +33,7 @@ const SITE = {
 
   opening: {
     arabic:  'هُوَ الَّذِي خَلَقَكُم مِّن نَّفْسٍ وَاحِدَةٍ وَجَعَلَ مِنْهَا زَوْجَهَا لِيَسْكُنَ إِلَيْهَا',
-    meaning: 'It is He who created you from a single soul, and made from it its companion — so that he might find his rest in her.',
+    meaning: 'He is the One who created you from a single soul, and made from it its mate, so that he might find rest in her.',
     ref:     'Al-A‘rāf 7:189',
 
     /* the line that says what this place is for */
