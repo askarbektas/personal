@@ -78,9 +78,13 @@ const DB = (function(){
     return name.charAt(0).toUpperCase() + name.slice(1);
   }
 
-  /* a database row, in the shape the page already renders */
+  /* A database row in the shape the page renders. The untouched row is kept
+     on it: the page renders from the mapped shape but must edit from the
+     original, or a save would write display values - signed photo links that
+     expire within the hour - back over the stored paths. */
   function toEntry(row){
     return {
+      _row:   row,
       id:     row.id,
       date:   row.happened_on,
       title:  row.title || '',
@@ -134,6 +138,27 @@ const DB = (function(){
     return path;
   }
 
+  async function update(id, entry){
+    const r = await fetch(base + '/rest/v1/entries?id=eq.' + encodeURIComponent(id), {
+      method:'PATCH',
+      headers: Object.assign(headers(true), { Prefer:'return=representation' }),
+      body: JSON.stringify({
+        happened_on: entry.date,
+        title:  entry.title || null,
+        author: entry.by || null,
+        place:  entry.place || null,
+        body:   entry.text || [],
+        quote:  entry.quote || null,
+        photos: entry.photos || []
+      })
+    });
+    if (!r.ok){
+      const e = await r.json().catch(function(){ return {}; });
+      throw new Error(e.message || 'could not save the change (' + r.status + ')');
+    }
+    return (await r.json())[0];
+  }
+
   async function remove(id){
     const r = await fetch(base + '/rest/v1/entries?id=eq.' + encodeURIComponent(id), {
       method:'DELETE', headers: headers(true)
@@ -165,7 +190,7 @@ const DB = (function(){
   return {
     configured: on,
     signIn: signIn, signUp: signUp, signOut: signOut, signedIn: signedIn, who: who,
-    entries: entries, add: add, remove: remove, upload: upload, signPhotos: signPhotos
+    entries: entries, add: add, update: update, remove: remove, upload: upload, signPhotos: signPhotos
   };
 })();
 

@@ -334,6 +334,9 @@ body::after{
   padding:6px 11px;
 }
 .entry .remove:focus-visible{outline:2px solid var(--madder);outline-offset:2px}
+.entry .remove + .remove{margin-left:8px}
+.entry .remove.edit{border-color:rgba(176,136,56,.45);color:var(--gold)}
+.entry .remove.edit:focus-visible{outline-color:var(--gold)}
 .panel .asLink{
   background:none;border:0;padding:0;cursor:pointer;color:var(--gold);
   font-family:var(--body);font-size:13px;
@@ -797,7 +800,7 @@ if (typeof loadStory === 'function'){
 
     const add = document.createElement('button');
     add.type = 'button'; add.textContent = 'Add a memory';
-    add.addEventListener('click', addForm);
+    add.addEventListener('click', function(){ entryForm(null); });
 
     const out = document.createElement('button');
     out.type = 'button'; out.textContent = 'Sign out';
@@ -915,38 +918,53 @@ if (typeof loadStory === 'function'){
       });
   }
 
-  /* ---------- add a memory ---------- */
-  function addForm(){
+  /* ---------- add a memory, or change one ---------- */
+  function entryForm(row){
+    const editing = !!(row && row.id);
     const today = new Date();
     const pad = function(n){ return String(n).padStart(2,'0'); };
     const iso = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate());
+    const kept = editing && Array.isArray(row.photos) ? row.photos : [];
 
     openPanel(
-      '<h2 id="panelTitle">Add a memory</h2>' +
-      '<p class="lede">It appears on the thread in date order, wherever it belongs.</p>' +
-      '<label for="aDate">Date</label><input id="aDate" type="date" value="' + iso + '">' +
-      '<label for="aTitle">Title</label><input id="aTitle" type="text" autocomplete="off">' +
+      '<h2 id="panelTitle">' + (editing ? 'Change this' : 'Add a memory') + '</h2>' +
+      '<p class="lede">' + (editing
+        ? 'Anything left as it is stays as it is. New photographs are added to the ones already here.'
+        : 'It appears on the thread in date order, wherever it belongs.') + '</p>' +
+      '<label for="aDate">Date</label><input id="aDate" type="date" value="' +
+        (editing ? esc(row.happened_on || iso) : iso) + '">' +
+      '<label for="aTitle">Title</label><input id="aTitle" type="text" autocomplete="off" value="' +
+        (editing ? esc(row.title || '') : '') + '">' +
       '<label>Whose memory is it?</label>' +
       '<div class="who" id="aWho">' +
-        '<button type="button" data-v="" aria-pressed="true">Both of us</button>' +
-        '<button type="button" data-v="askar" aria-pressed="false">' + esc(NAMES.askar) + '</button>' +
-        '<button type="button" data-v="asem" aria-pressed="false">' + esc(NAMES.asem) + '</button>' +
+        ['', 'askar', 'asem'].map(function(v){
+          const label = v ? esc(NAMES[v]) : 'Both of us';
+          const on = editing ? ((row.author || '') === v) : (v === '');
+          return '<button type="button" data-v="' + v + '" aria-pressed="' + on + '">' + label + '</button>';
+        }).join('') +
       '</div>' +
-      '<label for="aPlace">Place</label><input id="aPlace" type="text" autocomplete="off">' +
+      '<label for="aPlace">Place</label><input id="aPlace" type="text" autocomplete="off" value="' +
+        (editing ? esc(row.place || '') : '') + '">' +
       '<label for="aText">What happened</label>' +
-      '<textarea id="aText" rows="5"></textarea>' +
+      '<textarea id="aText" rows="5">' +
+        (editing && Array.isArray(row.body) ? esc(row.body.join('\n\n')) : '') + '</textarea>' +
       '<label for="aQuote">Something one of you said</label>' +
-      '<input id="aQuote" type="text" autocomplete="off">' +
+      '<input id="aQuote" type="text" autocomplete="off" value="' +
+        (editing && row.quote ? esc(row.quote.text || '') : '') + '">' +
       '<select id="aQuoteBy"><option value="">—</option>' +
         '<option value="askar">' + esc(NAMES.askar) + '</option>' +
         '<option value="asem">' + esc(NAMES.asem) + '</option></select>' +
-      '<label for="aPhotos">Photographs</label>' +
+      '<label for="aPhotos">Photographs' +
+        (kept.length ? ' <span style="text-transform:none;letter-spacing:0">— ' + kept.length +
+                       ' already here</span>' : '') + '</label>' +
       '<input id="aPhotos" type="file" accept="image/*" multiple>' +
       '<div class="acts"><button class="go" id="aGo" type="button">Save</button>' +
       '<button class="cancel" type="button" id="aCancel">Cancel</button></div>' +
       '<p class="said" id="aSaid"></p>',
       function(){
-        let who = '';
+        let who = editing ? (row.author || '') : '';
+        if (editing && row.quote && row.quote.by)
+          document.getElementById('aQuoteBy').value = row.quote.by;
         const said = document.getElementById('aSaid');
         const go   = document.getElementById('aGo');
         document.getElementById('aCancel').addEventListener('click', closePanel);
@@ -973,7 +991,7 @@ if (typeof loadStory === 'function'){
             }
             said.textContent = 'Saving…';
             const quote = document.getElementById('aQuote').value.trim();
-            await DB.add({
+            const payload = {
               date:  date,
               title: document.getElementById('aTitle').value.trim(),
               by:    who || null,
@@ -982,8 +1000,10 @@ if (typeof loadStory === 'function'){
                        .split(/\n\s*\n/).map(function(t){ return t.trim().replace(/\s*\n\s*/g,' '); })
                        .filter(Boolean),
               quote: quote ? { text: quote, by: document.getElementById('aQuoteBy').value || null } : null,
-              photos: photos
-            });
+              photos: kept.concat(photos)
+            };
+            if (editing) await DB.update(row.id, payload);
+            else         await DB.add(payload);
             said.textContent = 'Saved.';
             location.reload();
           } catch (err){
@@ -996,8 +1016,8 @@ if (typeof loadStory === 'function'){
   }
 
   window.__redrawBar = drawBar;
-  /* removing one: only ever offered on a row that came from the database,
-     because a row that came from the file has nothing to remove */
+  /* changing or removing one: only ever offered on a row that came from the
+     database, because a row that came from the file is not editable at all */
   function addRemovers(){
     if (!DB.signedIn()) return;
     const rows = window.__dbRows || [];
@@ -1005,6 +1025,12 @@ if (typeof loadStory === 'function'){
     document.querySelectorAll('.entry').forEach(function(el, i){
       const row = rows[i];
       if (!row || !row.id || el.querySelector('.remove')) return;
+      /* the raw row is what the form prefills from, not the rendered entry */
+      const ed = document.createElement('button');
+      ed.type = 'button'; ed.className = 'remove edit'; ed.textContent = 'Edit';
+      ed.addEventListener('click', function(){ entryForm(row._row || row); });
+      el.appendChild(ed);
+
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'remove'; b.textContent = 'Remove';
       b.addEventListener('click', function(){
