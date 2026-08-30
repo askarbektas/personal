@@ -253,7 +253,14 @@ img{max-width:100%}
 
 <script src="story.js"></script>
 <script>
-/* ================= render the page ================= */
+/* ================= render the page =================
+   Everything below runs inside boot(). The story reaches it as the
+   globals SITE and STORY, which story.js sets. When the data moves
+   to a server, that file is swapped for one which defines an async
+   loadStory() to fill the same two globals — nothing else changes.
+   ==================================================== */
+
+function boot(){
 
 const $ = function(id){ return document.getElementById(id); };
 const DAY = 86400000;
@@ -492,6 +499,18 @@ document.addEventListener('keydown', function(e){
   }, { threshold:.12, rootMargin:'0px 0px -6% 0px' });
   els.forEach(function(el){ io.observe(el); });
 })();
+
+}  /* end boot */
+
+/* one seam: a data source may load asynchronously before the page draws */
+if (typeof loadStory === 'function'){
+  loadStory().then(boot).catch(function(err){
+    console.error('could not load the story', err);
+    if (typeof STORY !== 'undefined') boot();
+  });
+} else {
+  boot();
+}
 </script>
 </body>
 </html>

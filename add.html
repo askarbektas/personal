@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5ede0">
+<meta name="robots" content="noindex, nofollow">
+<title>Add a memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400&family=Spectral:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --display:"Newsreader",Iowan Old Style,Palatino,Georgia,"Times New Roman",serif;
+  --body:"Spectral",Georgia,"Times New Roman",serif;
+  --paper:#f5ede0;
+  --card:#fdf8ee;
+  --ink:#241c17;
+  --ink-2:#4a3d33;
+  --muted:#7a6b58;
+  --faint:#a4937a;
+  --gold:#b08838;
+  --madder:#9e3b2e;
+  --rule:rgba(120,100,74,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);font-weight:300;
+  -webkit-font-smoothing:antialiased;padding:0 22px 70px;
+}
+.wrap{max-width:560px;margin:0 auto}
+
+header{padding:44px 0 8px}
+header h1{
+  font-family:var(--display);font-weight:400;font-size:31px;margin:0 0 10px;line-height:1.12;
+}
+header p{font-size:15.5px;line-height:1.6;color:var(--muted);margin:0;max-width:46ch}
+header a{color:var(--gold)}
+
+fieldset{border:0;margin:0;padding:0}
+.row{margin:22px 0 0}
+label{
+  display:block;font-size:11px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 7px;
+}
+label .opt{text-transform:none;letter-spacing:0;color:var(--faint);font-style:italic}
+input[type=text],input[type=date],textarea,select{
+  width:100%;font-family:var(--body);font-size:16.5px;color:var(--ink);
+  background:var(--card);border:1px solid var(--rule);border-radius:3px;
+  padding:12px 13px;font-weight:300;
+}
+textarea{line-height:1.6;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--gold);outline-offset:1px}
+.hint{font-size:12.5px;color:var(--faint);margin:7px 0 0;line-height:1.5}
+
+.who{display:flex;gap:8px;flex-wrap:wrap}
+.who button{
+  flex:1 1 auto;font-family:var(--body);font-size:14.5px;padding:11px 10px;cursor:pointer;
+  background:var(--card);border:1px solid var(--rule);border-radius:3px;color:var(--ink-2);
+}
+.who button[aria-pressed="true"]{border-color:var(--gold);background:#faf1e0;color:var(--ink)}
+.who button[aria-pressed="true"][data-v="asem"]{border-color:var(--madder);background:#fbf0ec}
+.who button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.out{margin:34px 0 0}
+.out h2{
+  font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 10px;
+}
+pre{
+  margin:0;background:#2a221c;color:#efe3d0;border-radius:4px;padding:15px 14px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;line-height:1.62;overflow-x:auto;white-space:pre;
+}
+.acts{display:flex;gap:9px;margin:12px 0 0;flex-wrap:wrap}
+.acts button{
+  font-family:var(--body);font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;
+  padding:12px 17px;border-radius:3px;cursor:pointer;border:1px solid var(--gold);
+  background:var(--gold);color:#fffaf0;
+}
+.acts button.ghost{background:none;color:var(--gold)}
+.acts button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.said{font-size:12.5px;color:var(--madder);margin:10px 0 0;min-height:1.2em}
+
+.steps{margin:34px 0 0;padding:18px 16px;background:var(--card);
+  border:1px solid var(--rule);border-radius:4px}
+.steps h2{font-family:var(--display);font-weight:400;font-size:18px;margin:0 0 10px}
+.steps ol{margin:0;padding-left:19px;font-size:14.5px;line-height:1.72;color:var(--ink-2)}
+.steps code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+  background:#efe4d1;padding:1px 5px;border-radius:2px;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Add a memory</h1>
+    <p>Fill this in, then copy the block it makes and paste it into
+       <code>story.js</code>. Nothing here is saved or sent anywhere —
+       the page only writes the code for you.</p>
+  </header>
+
+  <fieldset>
+    <div class="row">
+      <label for="date">Date</label>
+      <input type="date" id="date">
+    </div>
+
+    <div class="row">
+      <label for="title">Title</label>
+      <input type="text" id="title" placeholder="A short heading" autocomplete="off">
+    </div>
+
+    <div class="row">
+      <label>Whose memory is it?</label>
+      <div class="who" id="who">
+        <button type="button" data-v=""      aria-pressed="true">Both of us</button>
+        <button type="button" data-v="askar" aria-pressed="false">Askar</button>
+        <button type="button" data-v="asem"  aria-pressed="false">Asem</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="place">Place <span class="opt">— optional</span></label>
+      <input type="text" id="place" placeholder="Tashkent" autocomplete="off">
+    </div>
+
+    <div class="row">
+      <label for="text">What happened</label>
+      <textarea id="text" rows="6" placeholder="Write it plainly."></textarea>
+      <p class="hint">Leave an empty line between paragraphs.</p>
+    </div>
+
+    <div class="row">
+      <label for="quote">Something one of you said <span class="opt">— optional</span></label>
+      <input type="text" id="quote" placeholder="Their exact words" autocomplete="off">
+    </div>
+
+    <div class="row">
+      <label for="quoteBy">Who said it</label>
+      <select id="quoteBy">
+        <option value="">—</option>
+        <option value="askar">Askar</option>
+        <option value="asem">Asem</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="photos">Photographs <span class="opt">— optional</span></label>
+      <textarea id="photos" rows="4" placeholder="beach.jpg | the light that evening&#10;cafe.jpg"></textarea>
+      <p class="hint">One per line: the filename, then <code>|</code> and a caption if you want one.
+         Put the files in the <code>photos/</code> folder.</p>
+    </div>
+  </fieldset>
+
+  <div class="out">
+    <h2>Paste this into story.js</h2>
+    <pre id="out"></pre>
+    <div class="acts">
+      <button type="button" id="copy">Copy</button>
+      <button type="button" class="ghost" id="clear">Clear the form</button>
+    </div>
+    <p class="said" id="said"></p>
+  </div>
+
+  <div class="steps">
+    <h2>Then</h2>
+    <ol>
+      <li>Open <code>story.js</code> and paste the block inside <code>const STORY = [ … ]</code>.</li>
+      <li>Anywhere in the list is fine — the site sorts by date on its own.</li>
+      <li>Upload any photographs into the <code>photos/</code> folder.</li>
+      <li>Commit and push. The site updates itself.</li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+const $ = function(id){ return document.getElementById(id); };
+
+/* today, in the local timezone, as YYYY-MM-DD */
+(function(){
+  const d = new Date();
+  const p = function(n){ return String(n).padStart(2, '0'); };
+  $('date').value = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+})();
+
+let who = '';
+$('who').addEventListener('click', function(e){
+  const b = e.target.closest('button');
+  if (!b) return;
+  who = b.dataset.v;
+  $('who').querySelectorAll('button').forEach(function(x){
+    x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+  });
+  build();
+});
+
+/* a JS string literal, quoted safely */
+function q(s){
+  return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ') + "'";
+}
+
+function paragraphs(){
+  return $('text').value.split(/\n\s*\n/)
+    .map(function(t){ return t.trim().replace(/\s*\n\s*/g, ' '); })
+    .filter(Boolean);
+}
+
+function photoList(){
+  return $('photos').value.split('\n').map(function(line){
+    const t = line.trim();
+    if (!t) return null;
+    const bar = t.indexOf('|');
+    if (bar === -1) return { src: t, caption: '' };
+    return { src: t.slice(0, bar).trim(), caption: t.slice(bar + 1).trim() };
+  }).filter(Boolean);
+}
+
+function build(){
+  const L = [];
+  L.push('  {');
+  L.push('    date:  ' + q($('date').value) + ',');
+
+  const title = $('title').value.trim();
+  if (title) L.push('    title: ' + q(title) + ',');
+  if (who)   L.push('    by:    ' + q(who) + ',');
+
+  const place = $('place').value.trim();
+  if (place) L.push('    place: ' + q(place) + ',');
+
+  const ps = paragraphs();
+  if (ps.length){
+    L.push('    text: [');
+    ps.forEach(function(t, i){
+      L.push('      ' + q(t) + (i < ps.length - 1 ? ',' : ''));
+    });
+    L.push('    ],');
+  }
+
+  const quote = $('quote').value.trim();
+  if (quote){
+    const by = $('quoteBy').value;
+    L.push('    quote: { text: ' + q(quote) +
+           (by ? ', by: ' + q(by) : '') + ' },');
+  }
+
+  const ph = photoList();
+  if (ph.length){
+    L.push('    photos: [');
+    ph.forEach(function(p, i){
+      L.push('      { src: ' + q(p.src) +
+             (p.caption ? ', caption: ' + q(p.caption) : '') + ' }' +
+             (i < ph.length - 1 ? ',' : ''));
+    });
+    L.push('    ]');
+  } else {
+    L.push('    photos: []');
+  }
+
+  /* drop a trailing comma left on the line before photos */
+  L.push('  },');
+  $('out').textContent = L.join('\n');
+}
+
+['date','title','place','text','quote','quoteBy','photos'].forEach(function(id){
+  $(id).addEventListener('input', build);
+  $(id).addEventListener('change', build);
+});
+
+$('copy').addEventListener('click', function(){
+  const text = $('out').textContent;
+  const done = function(){ $('said').textContent = 'Copied. Paste it into story.js.'; };
+  const manual = function(){
+    const r = document.createRange();
+    r.selectNodeContents($('out'));
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    $('said').textContent = 'Select the block above and copy it.';
+  };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(manual);
+  else manual();
+});
+
+$('clear').addEventListener('click', function(){
+  ['title','place','text','quote','photos'].forEach(function(id){ $(id).value = ''; });
+  $('quoteBy').value = '';
+  $('said').textContent = '';
+  build();
+  $('title').focus();
+});
+
+build();
+</script>
+</body>
+</html>
