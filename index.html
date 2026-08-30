@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d14">
+<meta name="robots" content="noindex, nofollow">
+<title>Jol</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;background:#0b0d14;overflow:hidden}
+  body{overscroll-behavior:none}
+  svg#scene{display:block;width:100vw;height:100dvh;height:100vh}
+</style>
+</head>
+<body>
+<svg id="scene" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice"
+     role="img" aria-label="A road at night seen from a high window. A car is coming."></svg>
+
+<script>
+/* ============================================================
+   There is nothing to write here.
+
+   This page is one picture: the view down from a high window at
+   night, and a car coming along the road towards the building.
+   It has no text, no counter, no dates and no names, because it
+   is meant to be understood by exactly one person.
+
+   CONFIG below only controls the pacing.
+   ============================================================ */
+
+const CONFIG = {
+  approachSeconds: 16,   // how long the car takes to arrive
+  startDelay: 1.2        // a beat of stillness before it appears
+};
+
+/* ================= nothing below here needs editing ================= */
+
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('scene');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function el(n, a, parent){
+  const e = document.createElementNS(NS, n);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+/* deterministic pseudo-random, so the city is the same on every visit */
+let seed = 20260831;
+function rnd(){ seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
+
+/* ---------- geometry of the road, in perspective ---------- */
+const HORIZON = 336;
+const TOP_L = 152, TOP_R = 214;          // the road where it disappears
+const BOT_L = -10, BOT_R = 372;          // the road at our feet
+function edgeL(t){ return TOP_L + (BOT_L - TOP_L) * t; }
+function edgeR(t){ return TOP_R + (BOT_R - TOP_R) * t; }
+function roadY(t){ return HORIZON + (812 - HORIZON) * Math.pow(t, 1.55); }
+function centre(t){ return (edgeL(t) + edgeR(t)) / 2; }
+function widthAt(t){ return edgeR(t) - edgeL(t); }
+
+/* ---------- defs ---------- */
+const defs = el('defs', {}, svg);
+defs.innerHTML =
+  '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#080a11"/>' +
+    '<stop offset=".62" stop-color="#121726"/>' +
+    '<stop offset="1" stop-color="#2b2233"/>' +
+  '</linearGradient>' +
+  '<linearGradient id="asphalt" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#1d2130"/>' +
+    '<stop offset="1" stop-color="#141722"/>' +
+  '</linearGradient>' +
+  '<radialGradient id="lamp"><stop offset="0" stop-color="rgba(255,196,116,.55)"/>' +
+    '<stop offset="1" stop-color="rgba(255,196,116,0)"/></radialGradient>' +
+  '<radialGradient id="beam"><stop offset="0" stop-color="rgba(255,238,206,.95)"/>' +
+    '<stop offset="1" stop-color="rgba(255,238,206,0)"/></radialGradient>' +
+  '<linearGradient id="cone" x1="0" y1="1" x2="0" y2="0">' +
+    '<stop offset="0" stop-color="rgba(255,232,186,.11)"/>' +
+    '<stop offset=".55" stop-color="rgba(255,232,186,.07)"/>' +
+    '<stop offset="1" stop-color="rgba(255,232,186,0)"/></linearGradient>' +
+  '<filter id="soft" x="-60%" y="-60%" width="220%" height="220%">' +
+    '<feGaussianBlur stdDeviation="7"/></filter>' +
+  '<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="rgba(190,215,255,.055)"/>' +
+    '<stop offset=".45" stop-color="rgba(190,215,255,0)"/>' +
+    '<stop offset="1" stop-color="rgba(190,215,255,.03)"/></linearGradient>' +
+  '<radialGradient id="vig" cx=".5" cy=".46" r=".78">' +
+    '<stop offset=".55" stop-color="rgba(0,0,0,0)"/>' +
+    '<stop offset="1" stop-color="rgba(0,0,0,.62)"/></radialGradient>';
+
+/* ---------- sky ---------- */
+el('rect', { x:0, y:0, width:400, height:HORIZON + 8, fill:'url(#sky)' }, svg);
+
+for (let i = 0; i < 46; i++){
+  el('circle', {
+    cx: (rnd() * 400).toFixed(1),
+    cy: (rnd() * 250).toFixed(1),
+    r: (0.4 + rnd() * 0.9).toFixed(2),
+    fill: '#e8eeff',
+    opacity: (0.18 + rnd() * 0.5).toFixed(2)
+  }, svg);
+}
+
+/* ---------- the far city ---------- */
+const city = el('g', {}, svg);
+let x = -14;
+while (x < 414){
+  const w = 22 + rnd() * 44;
+  const h = 34 + rnd() * 88;
+  const y = HORIZON - h;
+  el('rect', { x:x.toFixed(1), y:y.toFixed(1), width:w.toFixed(1), height:(h + 10).toFixed(1),
+    fill:'#0d0f17' }, city);
+
+  /* a few of its windows are lit — someone else is awake too */
+  for (let wy = y + 7; wy < HORIZON - 8; wy += 9){
+    for (let wx = x + 5; wx < x + w - 5; wx += 8){
+      if (rnd() > 0.72){
+        el('rect', { x:wx.toFixed(1), y:wy.toFixed(1), width:3, height:4, rx:.4,
+          fill:'#ffcf8e', opacity:(0.30 + rnd() * 0.55).toFixed(2) }, city);
+      }
+    }
+  }
+  x += w + 5 + rnd() * 12;
+}
+
+/* warmth sitting on the horizon */
+el('ellipse', { cx:200, cy:HORIZON + 4, rx:230, ry:44, fill:'url(#lamp)', opacity:.5 }, svg);
+
+/* ---------- ground and road ---------- */
+el('rect', { x:0, y:HORIZON, width:400, height:800 - HORIZON, fill:'#0c0a10' }, svg);
+el('path', {
+  d: 'M' + TOP_L + ' ' + HORIZON + ' L' + TOP_R + ' ' + HORIZON +
+     ' L' + BOT_R + ' 812 L' + BOT_L + ' 812 Z',
+  fill:'url(#asphalt)'
+}, svg);
+/* kerbs, so the road reads as a road and not as a gap */
+el('path', { d:'M' + TOP_L + ' ' + HORIZON + ' L' + BOT_L + ' 812',
+  stroke:'rgba(214,198,170,.16)', 'stroke-width':1.4, fill:'none' }, svg);
+el('path', { d:'M' + TOP_R + ' ' + HORIZON + ' L' + BOT_R + ' 812',
+  stroke:'rgba(214,198,170,.16)', 'stroke-width':1.4, fill:'none' }, svg);
+
+/* centre line, foreshortened */
+for (let i = 0; i < 16; i++){
+  const t0 = i / 16 + 0.012, t1 = t0 + 0.030;
+  if (t1 > 1) break;
+  const y0 = roadY(t0), y1 = roadY(t1);
+  const w0 = widthAt(t0) * 0.020, w1 = widthAt(t1) * 0.020;
+  const c0 = centre(t0), c1 = centre(t1);
+  el('path', {
+    d: 'M' + (c0 - w0) + ' ' + y0 + ' L' + (c0 + w0) + ' ' + y0 +
+       ' L' + (c1 + w1) + ' ' + y1 + ' L' + (c1 - w1) + ' ' + y1 + ' Z',
+    fill:'#d8c9a6', opacity: (0.10 + 0.30 * t0).toFixed(2)
+  }, svg);
+}
+
+/* street lamps down the right-hand side */
+[0.06, 0.20, 0.40, 0.68, 1.02].forEach(function(t){
+  const y = roadY(t);
+  const px = edgeR(t) + widthAt(t) * 0.07;
+  const h = 26 + 132 * Math.pow(t, 1.35);
+  el('ellipse', { cx:px.toFixed(1), cy:y.toFixed(1), rx:(widthAt(t) * 0.17).toFixed(1),
+    ry:(widthAt(t) * 0.062).toFixed(1), fill:'url(#lamp)', opacity:.85 }, svg);
+  el('rect', { x:(px - 0.9).toFixed(1), y:(y - h).toFixed(1), width:1.8, height:h,
+    fill:'#0b0c11', opacity:.9 }, svg);
+  el('circle', { cx:px.toFixed(1), cy:(y - h).toFixed(1), r:(1.6 + 2.4 * t).toFixed(1),
+    fill:'#ffd39a' }, svg);
+  el('circle', { cx:px.toFixed(1), cy:(y - h).toFixed(1), r:(5 + 9 * t).toFixed(1),
+    fill:'url(#lamp)' }, svg);
+});
+
+/* ---------- the car ---------- */
+const car = el('g', { id:'car' }, svg);
+/* light thrown down the road ahead of it — soft, never a hard wedge */
+el('path', { d:'M-26 2 L26 2 L104 150 L-104 150 Z', fill:'url(#cone)', filter:'url(#soft)' }, car);
+/* the halo goes down first, then the body over it, or it washes the car out */
+el('ellipse', { cx:-13, cy:1, rx:15, ry:11, fill:'url(#beam)' }, car);
+el('ellipse', { cx:13,  cy:1, rx:15, ry:11, fill:'url(#beam)' }, car);
+/* the car itself, so the lights are attached to something */
+el('path', { d:'M-24 5 L-20 -10 Q-18 -15 -12 -15 L12 -15 Q18 -15 20 -10 L24 5 Q25 9 19 9 L-19 9 Q-25 9 -24 5 Z',
+  fill:'#0a0a11', stroke:'rgba(255,226,178,.16)', 'stroke-width':.7 }, car);
+el('path', { d:'M-13 -11 Q-11 -15 -7 -15 L7 -15 Q11 -15 13 -11 Z', fill:'#171722' }, car);
+el('ellipse', { cx:-13, cy:2, rx:4, ry:3, fill:'#fff6e2' }, car);
+el('ellipse', { cx:13,  cy:2, rx:4, ry:3, fill:'#fff6e2' }, car);
+
+/* ---------- the window we are looking through ---------- */
+el('rect', { x:0, y:0, width:400, height:800, fill:'url(#glass)' }, svg);
+el('rect', { x:0, y:0, width:400, height:800, fill:'url(#vig)' }, svg);
+const frame = el('g', {}, svg);
+el('rect', { x:0, y:0, width:400, height:26, fill:'#07080c' }, frame);
+el('rect', { x:0, y:770, width:400, height:34, fill:'#07080c' }, frame);
+el('rect', { x:0, y:0, width:16, height:800, fill:'#07080c' }, frame);
+el('rect', { x:384, y:0, width:16, height:800, fill:'#07080c' }, frame);
+el('rect', { x:0, y:768, width:400, height:2, fill:'rgba(255,214,160,.14)' }, frame);
+
+/* ---------- it comes closer ---------- */
+function place(t){
+  const y = roadY(t);
+  const s = 0.16 + 1.05 * Math.pow(t, 1.7);
+  car.setAttribute('transform',
+    'translate(' + centre(t).toFixed(2) + ',' + y.toFixed(2) + ') scale(' + s.toFixed(3) + ')');
+  car.setAttribute('opacity', Math.min(1, 0.25 + t * 5).toFixed(2));
+}
+
+const ARRIVE = 0.74;          // where it stops: below the window, not past it
+
+if (reduced){
+  place(ARRIVE);              // already here
+} else {
+  place(0);
+  const dur = CONFIG.approachSeconds * 1000;
+  let t0 = null;
+  function step(now){
+    if (t0 === null) t0 = now;
+    const e = (now - t0) / 1000 - CONFIG.startDelay;
+    if (e <= 0){ requestAnimationFrame(step); return; }
+    let p = Math.min(1, (e * 1000) / dur);
+    const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;   // ease in and out
+    place(eased * ARRIVE);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>

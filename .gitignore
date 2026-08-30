@@ -1,0 +1,11 @@
+node_modules/
+
+# Screenshots and working files — not part of the site.
+*.png
+
+# Local drafts, kept off the remote.
+areket.html
+directions.html
+letter.html
+same-sky.html
+thirty-first.html
