@@ -1,19 +1,23 @@
 /* ============================================================
-   THE STORY — this is the only file you edit.
+   THE STORY — the only file you edit.
 
-   Add one block per memory. Order does not matter: the page
-   sorts everything by date on its own.
+   One block per memory. Order does not matter; the page sorts
+   everything by date.
 
-   date   — 'YYYY-MM-DD'
-   title  — a short heading
-   text   — one or more paragraphs (an array)
-   quote  — optional. Something one of you actually said
-   by     — who said it: 'Asem' or 'Askar'
-   photos — optional. Filenames inside the photos/ folder
+     date    'YYYY-MM-DD'
+     title   a short heading
+     by      'askar' | 'asem' | omit for a shared moment
+     text    paragraphs, as an array of strings
+     place   optional. Where it happened
+     quote   optional. { text: '...', by: 'asem' }
+     photos  optional. [{ src: 'file.jpg', caption: '...' }]
+             src is read from the photos/ folder
 
    A date in the future is drawn as an open knot on a dashed
-   thread and labelled today / tomorrow / in N days, so the
-   next thing can sit on the timeline before it happens.
+   thread, labelled today / tomorrow / in N days.
+
+   Milestones (one month, 100 days, a year …) are worked out
+   from startDate and appear on their own. Do not add them.
    ============================================================ */
 
 const SITE = {
@@ -21,6 +25,11 @@ const SITE = {
   subtitle:  'Askar and Asem',
   startDate: '2026-08-18',
   tail:      'To be continued.',
+
+  names: {
+    askar: 'Askar',
+    asem:  'Asem'
+  },
 
   opening: {
     arabic:  'هُوَ الَّذِي خَلَقَكُم مِّن نَّفْسٍ وَاحِدَةٍ وَجَعَلَ مِنْهَا زَوْجَهَا لِيَسْكُنَ إِلَيْهَا',
@@ -35,6 +44,7 @@ const STORY = [
   {
     date:  '2026-08-18',
     title: 'The first message',
+    by:    'askar',
     text: [
       'This is the day we started writing to each other.'
     ],

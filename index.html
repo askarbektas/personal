@@ -21,8 +21,8 @@
   --ink-2:#4a3d33;
   --muted:#7a6b58;
   --faint:#a4937a;
-  --gold:#b08838;
-  --madder:#9e3b2e;
+  --gold:#b08838;          /* Askar's voice, and the thread itself */
+  --madder:#9e3b2e;        /* Asem's voice */
   --rule:rgba(120,100,74,.26);
 }
 
@@ -35,18 +35,18 @@ body{
   font-family:var(--body);
   font-weight:300;
   -webkit-font-smoothing:antialiased;
-  /* the grain of paper, not a flat screen */
   background-image:
     radial-gradient(110% 60% at 15% 0%, rgba(176,136,56,.07), transparent 60%),
     radial-gradient(90% 50% at 90% 100%, rgba(158,59,46,.05), transparent 60%);
   background-attachment:fixed;
 }
+img{max-width:100%}
 
 /* ---------------- opening ---------------- */
 .opening{
   min-height:100svh;min-height:100vh;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:56px 26px 40px;text-align:center;gap:0;
+  padding:56px 26px 40px;text-align:center;
 }
 .opening .ar{
   font-family:var(--arabic);font-size:25px;line-height:2.15;direction:rtl;
@@ -61,9 +61,7 @@ body{
   font-size:11px;letter-spacing:.2em;text-transform:uppercase;
   color:var(--gold);margin:0;font-family:var(--body);
 }
-.opening .note{
-  font-size:10.5px;color:var(--faint);margin:34px 0 0;font-style:italic;
-}
+.opening .note{font-size:10.5px;color:var(--faint);margin:34px 0 0;font-style:italic}
 .opening .down{
   margin-top:46px;width:1px;height:56px;
   background:linear-gradient(var(--gold),transparent);
@@ -75,89 +73,124 @@ body{
   font-family:var(--display);font-weight:300;font-size:38px;line-height:1;
   margin:0;letter-spacing:-.005em;
 }
-.mast p{
+.mast .sub{
   font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
   color:var(--muted);margin:14px 0 0;
 }
 .mast .count{
   font-family:var(--display);font-style:italic;font-size:16px;
   color:var(--gold);margin:10px 0 0;
-  letter-spacing:0;text-transform:none;   /* .mast p sets both — undo them here */
+  letter-spacing:0;text-transform:none;   /* .mast .sub sets both; don't inherit them */
 }
 
 /* ---------------- the thread ---------------- */
-.story{
-  max-width:620px;margin:0 auto;padding:44px 26px 0;position:relative;
-}
-.entry{
-  position:relative;padding:0 0 54px 30px;
-}
-/* the gold thread runs down the left of every entry */
-.entry::before{
+.story{max-width:620px;margin:0 auto;padding:44px 26px 0;position:relative}
+
+.entry,.mark{position:relative;padding-left:30px}
+.entry{padding-bottom:54px}
+.mark{padding-bottom:38px}
+
+/* the thread runs down the left of everything on it */
+.entry::before,.mark::before{
   content:"";position:absolute;left:5px;top:8px;bottom:-8px;width:1px;
   background:var(--gold);opacity:.42;
 }
-.entry:last-child::before{
-  background:linear-gradient(var(--gold),transparent);opacity:.42;
+.entry.future::before,.mark.future::before{
+  background:none;border-left:1px dashed var(--gold);width:0;opacity:.42;
 }
-.entry .knot{
+.knot{
   position:absolute;left:0;top:6px;width:11px;height:11px;border-radius:50%;
   background:var(--gold);box-shadow:0 0 0 4px var(--paper);
 }
-.entry.future::before{
-  background:none;
-  border-left:1px dashed var(--gold);opacity:.42;left:5px;width:0;
-}
+.entry.by-asem .knot{background:var(--madder)}
 .entry.future .knot{background:var(--paper);border:1px solid var(--gold)}
+
+/* a milestone is a smaller, quieter thing than a memory */
+.mark .knot{
+  width:7px;height:7px;left:2px;top:9px;
+  background:var(--paper);border:1px solid var(--gold);
+}
+.mark p{
+  font-family:var(--display);font-style:italic;font-size:15px;
+  color:var(--muted);margin:0;
+}
+.mark .on{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);font-style:normal;font-family:var(--body);margin:4px 0 0;
+  font-variant-numeric:tabular-nums;
+}
 
 .entry .date{
   font-size:11px;letter-spacing:.18em;text-transform:uppercase;
   color:var(--gold);margin:0 0 3px;font-variant-numeric:tabular-nums;
 }
-.entry .when{
-  font-size:11px;letter-spacing:.06em;color:var(--faint);
-  margin:0 0 12px;font-style:italic;text-transform:none;letter-spacing:0;
-}
+.entry.by-asem .date{color:var(--madder)}
+.entry .when{font-size:11px;color:var(--faint);margin:0 0 12px;font-style:italic}
 .entry h2{
   font-family:var(--display);font-weight:400;font-size:25px;line-height:1.22;
-  margin:0 0 14px;text-wrap:balance;
+  margin:0 0 8px;text-wrap:balance;
+}
+.entry .voice{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 14px;
+}
+.entry.by-asem .voice{color:var(--madder)}
+.entry .place{
+  font-family:var(--display);font-style:italic;font-size:14px;
+  color:var(--muted);margin:0 0 14px;
 }
 .entry p.t{
-  font-size:17.5px;line-height:1.68;color:var(--ink-2);margin:0 0 13px;
-  max-width:60ch;
+  font-size:17.5px;line-height:1.68;color:var(--ink-2);margin:0 0 13px;max-width:60ch;
 }
 .entry p.t:last-of-type{margin-bottom:0}
 
-.entry blockquote{
-  margin:18px 0 0;padding:14px 0 14px 16px;
-  border-left:2px solid var(--madder);
-}
+.entry blockquote{margin:20px 0 0;padding:2px 0 2px 16px;border-left:2px solid var(--gold)}
+.entry blockquote.q-asem{border-left-color:var(--madder)}
 .entry blockquote p{
   font-family:var(--display);font-style:italic;font-size:18px;line-height:1.58;
   margin:0;color:var(--ink);
 }
 .entry blockquote .by{
   font-family:var(--body);font-style:normal;font-size:10.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--madder);margin:9px 0 0;display:block;
+  text-transform:uppercase;color:var(--gold);margin:9px 0 0;display:block;
 }
+.entry blockquote.q-asem .by{color:var(--madder)}
 
 /* photographs, as prints laid on the page */
-.shots{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0 0}
-.shots figure{margin:0;flex:1 1 160px}
-.shots img{
-  display:block;width:100%;height:auto;border-radius:2px;
-  background:var(--paper-2);
-  border:1px solid var(--rule);
-  padding:6px;
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:22px 0 0}
+.shots figure{margin:0}
+.shots button{
+  display:block;width:100%;padding:6px;margin:0;cursor:zoom-in;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:2px;
 }
-.shots figcaption{
-  font-size:11px;color:var(--faint);margin:7px 0 0;font-style:italic;
+.shots button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.shots img{display:block;width:100%;height:150px;object-fit:cover;border-radius:1px}
+.shots figcaption{font-size:11px;color:var(--faint);margin:7px 0 0;font-style:italic}
+
+/* ---------------- lightbox ---------------- */
+.box{
+  position:fixed;inset:0;z-index:60;background:rgba(24,18,13,.94);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  padding:16px;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s;
 }
+.box.open{opacity:1;visibility:visible}
+.box img{max-width:100%;max-height:74vh;object-fit:contain;border-radius:2px}
+.box .cap{
+  font-family:var(--display);font-style:italic;font-size:15px;
+  color:#e6d9c4;margin:16px 0 0;text-align:center;max-width:44ch;
+}
+.box .nav{display:flex;gap:10px;align-items:center;margin:18px 0 0;flex-wrap:wrap;justify-content:center}
+.box button{
+  background:none;border:1px solid rgba(230,217,196,.34);color:#e6d9c4;
+  font-family:var(--body);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 16px;border-radius:2px;cursor:pointer;
+}
+.box button:hover{background:rgba(230,217,196,.10)}
+.box button:focus-visible{outline:2px solid #e6d9c4;outline-offset:2px}
+.box .of{color:#b0a08c;font-size:11.5px;letter-spacing:.1em;font-variant-numeric:tabular-nums}
 
 /* ---------------- the end that isn't one ---------------- */
-.tail{
-  max-width:620px;margin:0 auto;padding:0 26px 90px 56px;position:relative;
-}
+.tail{max-width:620px;margin:0 auto;padding:0 26px 90px 56px;position:relative}
 .tail .line{
   position:absolute;left:31px;top:-8px;height:80px;
   border-left:1px dashed var(--gold);opacity:.34;
@@ -172,6 +205,7 @@ body{
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none;transition:none}
+  .box{transition:none}
 }
 @media (min-width:620px){
   .opening .ar{font-size:29px}
@@ -179,6 +213,7 @@ body{
   .mast h1{font-size:52px}
   .entry h2{font-size:28px}
   .story{padding-left:34px;padding-right:34px}
+  .shots img{height:170px}
 }
 </style>
 </head>
@@ -194,7 +229,7 @@ body{
 
 <div class="mast">
   <h1 id="siteTitle"></h1>
-  <p id="siteSub"></p>
+  <p class="sub" id="siteSub"></p>
   <p class="count" id="siteCount"></p>
 </div>
 
@@ -203,6 +238,17 @@ body{
 <div class="tail">
   <div class="line" aria-hidden="true"></div>
   <p id="tail"></p>
+</div>
+
+<div class="box" id="box" role="dialog" aria-modal="true" aria-label="Photograph" hidden>
+  <img id="boxImg" alt="">
+  <p class="cap" id="boxCap"></p>
+  <div class="nav">
+    <button type="button" id="boxPrev">Previous</button>
+    <span class="of" id="boxOf"></span>
+    <button type="button" id="boxNext">Next</button>
+    <button type="button" id="boxClose">Close</button>
+  </div>
 </div>
 
 <script src="story.js"></script>
@@ -214,6 +260,8 @@ const DAY = 86400000;
 
 function parseDate(s){ const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
 function midnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function addMonths(d, n){ const x = new Date(d); x.setMonth(x.getMonth() + n); return x; }
 
 const MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
@@ -221,21 +269,20 @@ function longDate(d){ return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d
 
 const TODAY = midnight(new Date());
 const START = parseDate(SITE.startDate);
+const NAMES = SITE.names || {};
 
 /* ---- the opening ---- */
-$('ar').textContent      = SITE.opening.arabic;
-$('meaning').textContent = SITE.opening.meaning;
-$('ref').textContent     = SITE.opening.ref;
-$('note').textContent    = SITE.opening.note;
+$('ar').textContent        = SITE.opening.arabic;
+$('meaning').textContent   = SITE.opening.meaning;
+$('ref').textContent       = SITE.opening.ref;
+$('note').textContent      = SITE.opening.note;
 $('siteTitle').textContent = SITE.title;
 $('siteSub').textContent   = SITE.subtitle;
 $('tail').textContent      = SITE.tail || 'To be continued.';
 
 (function(){
   const days = Math.floor((TODAY - START) / DAY) + 1;
-  $('siteCount').textContent = days > 0
-    ? 'Day ' + days
-    : 'begins ' + longDate(START);
+  $('siteCount').textContent = days > 0 ? 'Day ' + days : 'begins ' + longDate(START);
 })();
 
 /* ---- label for a date that has not arrived ---- */
@@ -244,26 +291,58 @@ function whenLabel(d){
   if (diff === 0) return 'today';
   if (diff === 1) return 'tomorrow';
   if (diff > 1)   return 'in ' + diff + ' days';
-  return null;                       // already past — no label needed
+  return null;
 }
 
-/* ---- sort the story by date ---- */
-const entries = STORY.slice().sort(function(a, b){
-  return parseDate(a.date) - parseDate(b.date);
-});
+/* ---- milestones work themselves out from the start date ---- */
+function milestones(){
+  const out = [
+    { on: addMonths(START, 1), label: 'one month' },
+    { on: addDays(START, 99),  label: 'one hundred days' },
+    { on: addMonths(START, 6), label: 'six months' }
+  ];
+  const last = STORY.reduce(function(m, s){
+    const d = parseDate(s.date); return d > m ? d : m;
+  }, TODAY);
+  for (let y = 1; y <= 60; y++){
+    const on = addMonths(START, 12 * y);
+    if (on > addMonths(last, 1)) break;
+    out.push({ on: on, label: y === 1 ? 'one year' : y + ' years' });
+  }
+  return out;
+}
+
+/* ---- everything on the thread, in date order ---- */
+const items = STORY.map(function(s){ return { kind:'entry', on:parseDate(s.date), data:s }; })
+  .concat(milestones().map(function(m){ return { kind:'mark', on:m.on, data:m }; }))
+  .sort(function(a, b){ return a.on - b.on || (a.kind === 'mark' ? -1 : 1); });
 
 const main = $('story');
+const gallery = [];        /* every photo on the page, so the lightbox can walk them */
 
-entries.forEach(function(item){
-  const d = parseDate(item.date);
+items.forEach(function(item){
+  const d = item.on;
   const future = d > TODAY;
 
-  const sec = document.createElement('section');
-  sec.className = 'entry reveal' + (future ? ' future' : '');
+  if (item.kind === 'mark'){
+    const sec = document.createElement('div');
+    sec.className = 'mark reveal' + (future ? ' future' : '');
+    const k = document.createElement('div'); k.className = 'knot'; sec.appendChild(k);
+    const p = document.createElement('p');
+    p.textContent = item.data.label;
+    sec.appendChild(p);
+    const on = document.createElement('p');
+    on.className = 'on';
+    on.textContent = longDate(d);
+    sec.appendChild(on);
+    main.appendChild(sec);
+    return;
+  }
 
-  const knot = document.createElement('div');
-  knot.className = 'knot';
-  sec.appendChild(knot);
+  const s = item.data;
+  const sec = document.createElement('section');
+  sec.className = 'entry reveal' + (future ? ' future' : '') + (s.by ? ' by-' + s.by : '');
+  const k = document.createElement('div'); k.className = 'knot'; sec.appendChild(k);
 
   const date = document.createElement('p');
   date.className = 'date';
@@ -278,43 +357,75 @@ entries.forEach(function(item){
     sec.appendChild(when);
   }
 
-  if (item.title){
+  if (s.title){
     const h = document.createElement('h2');
-    h.textContent = item.title;
+    h.textContent = s.title;
     sec.appendChild(h);
   }
 
-  (item.text || []).forEach(function(t){
+  if (s.by && NAMES[s.by]){
+    const v = document.createElement('p');
+    v.className = 'voice';
+    v.textContent = NAMES[s.by];
+    sec.appendChild(v);
+  }
+
+  if (s.place){
+    const pl = document.createElement('p');
+    pl.className = 'place';
+    pl.textContent = s.place;
+    sec.appendChild(pl);
+  }
+
+  (s.text || []).forEach(function(t){
     const p = document.createElement('p');
     p.className = 't';
     p.textContent = t;
     sec.appendChild(p);
   });
 
-  if (item.quote){
+  if (s.quote && s.quote.text){
     const bq = document.createElement('blockquote');
+    if (s.quote.by === 'asem') bq.className = 'q-asem';
     const p = document.createElement('p');
-    p.textContent = item.quote;
+    p.textContent = s.quote.text;
     bq.appendChild(p);
-    if (item.by){
+    if (s.quote.by && NAMES[s.quote.by]){
       const by = document.createElement('span');
       by.className = 'by';
-      by.textContent = item.by;
+      by.textContent = NAMES[s.quote.by];
       bq.appendChild(by);
     }
     sec.appendChild(bq);
   }
 
-  if (item.photos && item.photos.length){
+  if (s.photos && s.photos.length){
     const wrap = document.createElement('div');
     wrap.className = 'shots';
-    item.photos.forEach(function(src){
+    s.photos.forEach(function(photo){
+      const src     = typeof photo === 'string' ? photo : photo.src;
+      const caption = typeof photo === 'string' ? ''    : (photo.caption || '');
+      const url     = src.indexOf('/') > -1 ? src : 'photos/' + src;
+      const index   = gallery.length;
+      gallery.push({ url: url, caption: caption });
+
       const fig = document.createElement('figure');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', caption || ('Photograph, ' + longDate(d)));
       const img = document.createElement('img');
-      img.src = src.indexOf('/') > -1 ? src : 'photos/' + src;
-      img.alt = item.title || longDate(d);
+      img.src = url;
+      img.alt = caption || '';
       img.loading = 'lazy';
-      fig.appendChild(img);
+      img.decoding = 'async';
+      btn.appendChild(img);
+      btn.addEventListener('click', function(){ openBox(index); });
+      fig.appendChild(btn);
+      if (caption){
+        const cap = document.createElement('figcaption');
+        cap.textContent = caption;
+        fig.appendChild(cap);
+      }
       wrap.appendChild(fig);
     });
     sec.appendChild(wrap);
@@ -323,12 +434,55 @@ entries.forEach(function(item){
   main.appendChild(sec);
 });
 
+/* ---- the lightbox ---- */
+const box = $('box');
+let at = 0, lastFocus = null;
+
+function show(i){
+  at = (i + gallery.length) % gallery.length;
+  const g = gallery[at];
+  $('boxImg').src = g.url;
+  $('boxImg').alt = g.caption || '';
+  $('boxCap').textContent = g.caption || '';
+  $('boxOf').textContent = (at + 1) + ' / ' + gallery.length;
+  const only = gallery.length < 2;
+  $('boxPrev').hidden = only;
+  $('boxNext').hidden = only;
+  $('boxOf').hidden = only;
+}
+function openBox(i){
+  if (!gallery.length) return;
+  lastFocus = document.activeElement;
+  box.hidden = false;
+  show(i);
+  requestAnimationFrame(function(){ box.classList.add('open'); });
+  $('boxClose').focus();
+}
+function closeBox(){
+  box.classList.remove('open');
+  setTimeout(function(){
+    box.hidden = true;
+    $('boxImg').removeAttribute('src');
+    if (lastFocus) lastFocus.focus();
+  }, 250);
+}
+$('boxPrev').addEventListener('click', function(){ show(at - 1); });
+$('boxNext').addEventListener('click', function(){ show(at + 1); });
+$('boxClose').addEventListener('click', closeBox);
+box.addEventListener('click', function(e){ if (e.target === box) closeBox(); });
+document.addEventListener('keydown', function(e){
+  if (box.hidden) return;
+  if (e.key === 'Escape')     closeBox();
+  if (e.key === 'ArrowLeft')  show(at - 1);
+  if (e.key === 'ArrowRight') show(at + 1);
+});
+
 /* ---- memories arrive one at a time as you scroll ---- */
 (function(){
-  const items = document.querySelectorAll('.reveal');
+  const els = document.querySelectorAll('.reveal');
   if (!('IntersectionObserver' in window) ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    items.forEach(function(el){ el.classList.add('in'); });
+    els.forEach(function(el){ el.classList.add('in'); });
     return;
   }
   const io = new IntersectionObserver(function(es){
@@ -336,7 +490,7 @@ entries.forEach(function(item){
       if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
     });
   }, { threshold:.12, rootMargin:'0px 0px -6% 0px' });
-  items.forEach(function(el){ io.observe(el); });
+  els.forEach(function(el){ io.observe(el); });
 })();
 </script>
 </body>
