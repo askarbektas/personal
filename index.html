@@ -796,8 +796,8 @@ if (typeof loadStory === 'function'){
     openPanel(
       '<h2 id="panelTitle">Sign in</h2>' +
       '<p class="lede">Only the two of you have an account here.</p>' +
-      '<label for="pEmail">Email</label>' +
-      '<input id="pEmail" type="email" autocomplete="email" inputmode="email">' +
+      '<label for="pEmail">Name</label>' +
+      '<input id="pEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">' +
       '<label for="pPass">Password</label>' +
       '<input id="pPass" type="password" autocomplete="current-password">' +
       '<div class="acts"><button class="go" id="pGo" type="button">Sign in</button>' +
@@ -811,7 +811,7 @@ if (typeof loadStory === 'function'){
         function submit(){
           const email = document.getElementById('pEmail').value.trim();
           const pass  = document.getElementById('pPass').value;
-          if (!email || !pass){ said.className = 'said bad'; said.textContent = 'Both, please.'; return; }
+          if (!email || !pass){ said.className = 'said bad'; said.textContent = 'A name and a password, please.'; return; }
           go.disabled = true; said.className = 'said ok'; said.textContent = 'One moment…';
           DB.signIn(email, pass).then(function(){ location.reload(); })
             .catch(function(err){
@@ -832,9 +832,9 @@ if (typeof loadStory === 'function'){
       '<h2 id="panelTitle">Create an account</h2>' +
       '<p class="lede">One for each of you. The project has to be allowing ' +
         'sign-ups for this to work — turn that off again once you are both in.</p>' +
-      '<label for="mEmail">Email</label>' +
-      '<input id="mEmail" type="email" autocomplete="email" inputmode="email">' +
-      '<label for="mPass">Password <span style="text-transform:none;letter-spacing:0">— at least 8 characters</span></label>' +
+      '<label for="mEmail">Name</label>' +
+      '<input id="mEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">' +
+      '<label for="mPass">Password <span style="text-transform:none;letter-spacing:0">— at least 6 characters</span></label>' +
       '<input id="mPass" type="password" autocomplete="new-password">' +
       '<div class="acts"><button class="go" id="mGo" type="button">Create it</button>' +
       '<button class="cancel" type="button" id="mCancel">Back</button></div>' +
@@ -846,9 +846,9 @@ if (typeof loadStory === 'function'){
         go.addEventListener('click', function(){
           const email = document.getElementById('mEmail').value.trim();
           const pass  = document.getElementById('mPass').value;
-          if (!email || pass.length < 8){
+          if (!email || pass.length < 6){
             said.className = 'said bad';
-            said.textContent = 'An email, and a password of at least 8 characters.';
+            said.textContent = 'A name, and a password of at least 6 characters.';
             return;
           }
           go.disabled = true; said.className = 'said ok'; said.textContent = 'One moment…';

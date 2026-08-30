@@ -25,6 +25,15 @@ const DB = (function(){
     catch (e){ /* private browsing: the session simply does not outlive the tab */ }
   }
 
+  /* a bare name becomes the address Supabase insists on; a real address
+     given in full is left alone */
+  function asAddress(who){
+    const s = String(who).trim();
+    if (s.indexOf('@') > -1) return s.toLowerCase();
+    const domain = (SUPABASE.loginDomain || 'samesky.app').replace(/^@/, '');
+    return s.toLowerCase().replace(/\s+/g, '') + '@' + domain;
+  }
+
   function headers(auth){
     const h = { apikey: SUPABASE.key, 'Content-Type': 'application/json' };
     const s = session();
@@ -36,7 +45,7 @@ const DB = (function(){
     const r = await fetch(base + '/auth/v1/token?grant_type=password', {
       method: 'POST',
       headers: { apikey: SUPABASE.key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: password })
+      body: JSON.stringify({ email: asAddress(email), password: password })
     });
     const body = await r.json().catch(function(){ return {}; });
     if (!r.ok) throw new Error(body.error_description || body.msg || body.error || 'Sign-in failed');
@@ -51,7 +60,7 @@ const DB = (function(){
     const r = await fetch(base + '/auth/v1/signup', {
       method: 'POST',
       headers: { apikey: SUPABASE.key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: password })
+      body: JSON.stringify({ email: asAddress(email), password: password })
     });
     const body = await r.json().catch(function(){ return {}; });
     if (!r.ok) throw new Error(body.error_description || body.msg || body.error || 'Could not create the account');
@@ -61,7 +70,13 @@ const DB = (function(){
 
   function signOut(){ remember(null); }
   function signedIn(){ const s = session(); return !!(s && s.access_token); }
-  function who(){ const s = session(); return s && s.user ? s.user.email : null; }
+  function who(){
+    const s = session();
+    if (!s || !s.user || !s.user.email) return null;
+    const at = s.user.email.indexOf('@');
+    const name = at > -1 ? s.user.email.slice(0, at) : s.user.email;
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
 
   /* a database row, in the shape the page already renders */
   function toEntry(row){
