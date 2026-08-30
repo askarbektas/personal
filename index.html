@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f5ede0">
 <meta name="robots" content="noindex, nofollow">
-<title>Biz</title>
+<title>Us</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Spectral:ital,wght@0,300;0,400;1,300&family=Amiri&display=swap" rel="stylesheet">
@@ -202,12 +202,12 @@ body{
 
 <div class="tail">
   <div class="line" aria-hidden="true"></div>
-  <p id="tail">Davomi bor.</p>
+  <p id="tail"></p>
 </div>
 
 <script src="story.js"></script>
 <script>
-/* ================= sahifani chizish ================= */
+/* ================= render the page ================= */
 
 const $ = function(id){ return document.getElementById(id); };
 const DAY = 86400000;
@@ -215,38 +215,39 @@ const DAY = 86400000;
 function parseDate(s){ const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
 function midnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 
-const MONTHS = ['yanvar','fevral','mart','aprel','may','iyun',
-                'iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
-function longDate(d){ return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+function longDate(d){ return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
 
 const TODAY = midnight(new Date());
 const START = parseDate(SITE.startDate);
 
-/* ---- ochilish ---- */
+/* ---- the opening ---- */
 $('ar').textContent      = SITE.opening.arabic;
 $('meaning').textContent = SITE.opening.meaning;
 $('ref').textContent     = SITE.opening.ref;
 $('note').textContent    = SITE.opening.note;
 $('siteTitle').textContent = SITE.title;
 $('siteSub').textContent   = SITE.subtitle;
+$('tail').textContent      = SITE.tail || 'To be continued.';
 
 (function(){
   const days = Math.floor((TODAY - START) / DAY) + 1;
   $('siteCount').textContent = days > 0
-    ? days + '-kun'
-    : longDate(START) + ' dan boshlanadi';
+    ? 'Day ' + days
+    : 'begins ' + longDate(START);
 })();
 
-/* ---- kelasi sana uchun izoh ---- */
+/* ---- label for a date that has not arrived ---- */
 function whenLabel(d){
   const diff = Math.round((d - TODAY) / DAY);
-  if (diff === 0) return 'bugun';
-  if (diff === 1) return 'ertaga';
-  if (diff > 1)   return diff + ' kundan keyin';
-  return null;                       // o'tgan kun — izoh kerak emas
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'tomorrow';
+  if (diff > 1)   return 'in ' + diff + ' days';
+  return null;                       // already past — no label needed
 }
 
-/* ---- hikoyani sanaga qarab tartiblash ---- */
+/* ---- sort the story by date ---- */
 const entries = STORY.slice().sort(function(a, b){
   return parseDate(a.date) - parseDate(b.date);
 });
@@ -322,7 +323,7 @@ entries.forEach(function(item){
   main.appendChild(sec);
 });
 
-/* ---- xotiralar birin-ketin paydo bo'ladi ---- */
+/* ---- memories arrive one at a time as you scroll ---- */
 (function(){
   const items = document.querySelectorAll('.reveal');
   if (!('IntersectionObserver' in window) ||

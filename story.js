@@ -1,31 +1,32 @@
 /* ============================================================
-   HIKOYA — bu yagona fayl, siz shuni tahrirlaysiz.
+   THE STORY — this is the only file you edit.
 
-   Har bir xotira uchun bitta blok qo'shasiz. Tartib muhim emas —
-   sayt sanaga qarab o'zi joylashtiradi.
+   Add one block per memory. Order does not matter: the page
+   sorts everything by date on its own.
 
    date   — 'YYYY-MM-DD'
-   title  — qisqa sarlavha
-   text   — bitta yoki bir nechta xatboshi (massiv)
-   photos — ixtiyoriy. 'photos/' papkasidagi fayl nomlari
-   quote  — ixtiyoriy. Kimningdir aynan aytgan gapi
-   by     — quote kimniki: 'asem' yoki 'askar'
+   title  — a short heading
+   text   — one or more paragraphs (an array)
+   quote  — optional. Something one of you actually said
+   by     — who said it: 'Asem' or 'Askar'
+   photos — optional. Filenames inside the photos/ folder
 
-   Kelasi sanani yozsangiz, sayt uni "hali bo'lmagan" deb
-   ko'rsatadi va ip uzilmay davom etadi.
+   A date in the future is drawn as an open knot on a dashed
+   thread and labelled today / tomorrow / in N days, so the
+   next thing can sit on the timeline before it happens.
    ============================================================ */
 
 const SITE = {
-  title:      'Biz',
-  subtitle:   'Askar va Asem',
-  startDate:  '2026-08-18',
+  title:     'Us',
+  subtitle:  'Askar and Asem',
+  startDate: '2026-08-18',
+  tail:      'To be continued.',
 
-  // Ochilish oyati — siz so'ragan 7:189
   opening: {
     arabic:  'هُوَ الَّذِي خَلَقَكُم مِّن نَّفْسٍ وَاحِدَةٍ وَجَعَلَ مِنْهَا زَوْجَهَا لِيَسْكُنَ إِلَيْهَا',
-    meaning: 'U sizlarni bir jondan yaratdi va undan juftini qildi — toki uning yonida orom topsin.',
-    ref:     'Al-A‘rof, 7:189',
-    note:    'Ma’no tarjimasi shu sahifa uchun yozilgan.'
+    meaning: 'It is He who created you from a single soul, and made from it its companion — so that he might find his rest in her.',
+    ref:     'Al-A‘rāf 7:189',
+    note:    'A rendering of the meaning, written for this page.'
   }
 };
 
@@ -33,28 +34,27 @@ const STORY = [
 
   {
     date:  '2026-08-18',
-    title: 'Birinchi xabar',
+    title: 'The first message',
     text: [
-      'Shu kuni yozishni boshladik.'
+      'This is the day we started writing to each other.'
     ],
-    // quote: '', by: 'asem',
     photos: []
   },
 
   {
     date:  '2026-08-30',
-    title: 'Ikki hafta',
+    title: 'Two weeks',
     text: [
-      'Hozircha bir-birimizni odamlarimizdek sezyapmiz.'
+      'So far it already feels like we are each other’s people.'
     ],
     photos: []
   },
 
   {
     date:  '2026-08-31',
-    title: 'Birinchi ko‘rishuv',
+    title: 'The first time we meet',
     text: [
-      'Bu yerni ko‘rishgandan keyin to‘ldirasiz.'
+      'Fill this in afterwards.'
     ],
     photos: []
   }
