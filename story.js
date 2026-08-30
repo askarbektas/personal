@@ -20,7 +20,11 @@
    from startDate and appear on their own. Do not add them.
    ============================================================ */
 
-const SITE = {
+/* var, not const, on purpose: a top-level const lives in the global
+   lexical scope and is not a property of window, so a data source
+   cannot replace it. var makes these the window properties the page
+   reads, and lets this file be loaded more than once without throwing. */
+var SITE = {
   title:     'Us',
   subtitle:  'Askar and Asem',
   startDate: '2026-08-18',
@@ -46,7 +50,7 @@ const SITE = {
   }
 };
 
-const STORY = [
+var STORY = [
 
   {
     date:  '2026-08-18',

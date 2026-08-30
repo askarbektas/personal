@@ -345,20 +345,8 @@ body::after{
   </div>
 </div>
 
-<script>
-/* story.js is fetched with a cache-busting stamp. Without it a browser
-   holds on to the copy it already has, and a memory added minutes ago
-   does not appear - which is exactly the file that changes most often. */
-function loadStory(){
-  return new Promise(function(resolve, reject){
-    const el = document.createElement('script');
-    el.src = 'story.js?t=' + Date.now();
-    el.onload = resolve;
-    el.onerror = function(){ reject(new Error('story.js did not load')); };
-    document.head.appendChild(el);
-  });
-}
-</script>
+<script src="config.js"></script>
+<script src="data.js"></script>
 <script>
 /* ================= render the page =================
    Everything below runs inside boot(). The story reaches it as the
