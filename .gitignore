@@ -1,13 +1,13 @@
 node_modules/
 
-# Screenshots and working files — not part of the site.
+# Working screenshots — never part of the site.
 *.png
-# …but the artwork the site actually serves is not a screenshot.
 !images/*.png
 
-# Local drafts, kept off the remote.
+# Local working files, kept off the public site.
+*.md
+*.sql
+*.zip
+
+# Holds Asem's own messages. Must never reach the remote.
 areket.html
-directions.html
-letter.html
-same-sky.html
-thirty-first.html
