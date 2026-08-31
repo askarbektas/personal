@@ -743,6 +743,7 @@ if (typeof loadStory === 'function'){
   }).catch(function(err){
     console.error('could not load the story', err);
     if (typeof STORY !== 'undefined') boot();
+    if (window.__redrawBar) window.__redrawBar();   /* a link still has to work */
   });
 } else {
   boot();
@@ -864,7 +865,7 @@ if (typeof loadStory === 'function'){
           const pass  = document.getElementById('pPass').value;
           if (!email || !pass){ said.className = 'said bad'; said.textContent = 'A name and a password, please.'; return; }
           go.disabled = true; said.className = 'said ok'; said.textContent = 'One moment…';
-          DB.signIn(email, pass).then(function(){ location.reload(); })
+          DB.signIn(email, pass).then(function(){ location.reload(); })   /* the hash survives a reload */
             .catch(function(err){
               go.disabled = false;
               said.className = 'said bad';
@@ -1052,9 +1053,12 @@ if (typeof loadStory === 'function'){
      somewhere else and opened here ready to save. It only ever fills the
      sheet in - nothing is written without the Save being pressed - and the
      fragment is dropped from the address afterwards. */
+  let linkHandled = false;
   function fromLink(){
+    if (linkHandled) return;
     const m = /^#add=([A-Za-z0-9\-_]+)$/.exec(location.hash || '');
-    if (!m || !DB.signedIn()) return;
+    if (!m) return;
+
     let row;
     try {
       const b64 = m[1].replace(/-/g,'+').replace(/_/g,'/');
@@ -1062,7 +1066,18 @@ if (typeof loadStory === 'function'){
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       row = JSON.parse(new TextDecoder().decode(bytes));
-    } catch (e){ return; }
+    } catch (e){
+      linkHandled = true;
+      console.warn('that link could not be read', e);
+      return;
+    }
+
+    /* Not signed in yet: ask, keeping the link in the address so that after
+       signing in the page comes back to exactly this and opens the sheet.
+       Doing nothing here is what made a link look broken. */
+    if (!DB.signedIn()){ linkHandled = true; signInForm(); return; }
+
+    linkHandled = true;
     history.replaceState(null, '', location.pathname);
     entryForm(row);
   }
