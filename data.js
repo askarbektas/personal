@@ -69,7 +69,31 @@ const DB = (function(){
   }
 
   function signOut(){ remember(null); }
-  function signedIn(){ const s = session(); return !!(s && s.access_token); }
+
+  /* A stored session is not the same as a usable one: the access token
+     lasts about an hour. Treating an expired one as signed in is what
+     makes writes fail silently, so it is checked here and refreshed
+     below before the page asks the database for anything. */
+  function expired(s){
+    return !!(s && s.expires_at && (s.expires_at * 1000) <= Date.now() + 30000);
+  }
+  function signedIn(){
+    const s = session();
+    return !!(s && s.access_token && !expired(s));
+  }
+  async function refresh(){
+    const s = session();
+    if (!s || !s.refresh_token || !expired(s)) return;
+    try {
+      const r = await fetch(base + '/auth/v1/token?grant_type=refresh_token', {
+        method:'POST',
+        headers: { apikey: SUPABASE.key, 'Content-Type':'application/json' },
+        body: JSON.stringify({ refresh_token: s.refresh_token })
+      });
+      if (!r.ok) { remember(null); return; }      /* it is gone; ask again */
+      remember(await r.json());
+    } catch (e){ /* offline: leave it be and let the call fail loudly */ }
+  }
   function who(){
     const s = session();
     if (!s || !s.user || !s.user.email) return null;
@@ -163,14 +187,22 @@ const DB = (function(){
       const e = await r.json().catch(function(){ return {}; });
       throw new Error(e.message || 'could not save the change (' + r.status + ')');
     }
-    return (await r.json())[0];
+    const back = await r.json().catch(function(){ return []; });
+    if (!back.length) throw new Error('not saved — sign in again');
+    return back[0];
   }
 
+  /* PostgREST answers a DELETE that row level security refused with 204 and
+     an empty body - indistinguishable from success. Asking for the deleted
+     rows back is the only way to know it actually happened. */
   async function remove(id){
-    const r = await fetch(base + '/rest/v1/entries?id=eq.' + encodeURIComponent(id), {
-      method:'DELETE', headers: headers(true)
+    const r = await fetch(base + '/rest/v1/entries?id=eq.' + encodeURIComponent(id) + '&select=id', {
+      method:'DELETE',
+      headers: Object.assign(headers(true), { Prefer:'return=representation' })
     });
     if (!r.ok) throw new Error('could not remove it (' + r.status + ')');
+    const gone = await r.json().catch(function(){ return []; });
+    if (!gone.length) throw new Error('not removed — sign in again');
   }
 
   async function add(entry){
@@ -197,6 +229,7 @@ const DB = (function(){
   return {
     configured: on,
     signIn: signIn, signUp: signUp, signOut: signOut, signedIn: signedIn, who: who,
+    refresh: refresh,
     entries: entries, add: add, update: update, remove: remove, upload: upload, signPhotos: signPhotos
   };
 })();
@@ -215,7 +248,7 @@ function loadStory(){
        database holds so it can offer to move across whatever is missing,
        not only on the first sign-in */
     window.__fileStory = (typeof STORY !== 'undefined') ? STORY.slice() : [];
-    return DB.entries().then(function(rows){
+    return DB.refresh().then(DB.entries).then(function(rows){
       window.__dbRows = rows;
       if (!rows.length) return;                        // the file's own STORY stands
       const paths = [];
