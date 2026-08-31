@@ -920,11 +920,12 @@ if (typeof loadStory === 'function'){
 
   /* ---------- add a memory, or change one ---------- */
   function entryForm(row){
-    const editing = !!(row && row.id);
+    const editing = !!(row && row.id);   // saves over that row
+    const has     = !!row;               // prefills from it, id or not
     const today = new Date();
     const pad = function(n){ return String(n).padStart(2,'0'); };
     const iso = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate());
-    const kept = editing && Array.isArray(row.photos) ? row.photos : [];
+    const kept = has && Array.isArray(row.photos) ? row.photos : [];
 
     openPanel(
       '<h2 id="panelTitle">' + (editing ? 'Change this' : 'Add a memory') + '</h2>' +
@@ -932,25 +933,25 @@ if (typeof loadStory === 'function'){
         ? 'Anything left as it is stays as it is. New photographs are added to the ones already here.'
         : 'It appears on the thread in date order, wherever it belongs.') + '</p>' +
       '<label for="aDate">Date</label><input id="aDate" type="date" value="' +
-        (editing ? esc(row.happened_on || iso) : iso) + '">' +
+        (has ? esc(row.happened_on || iso) : iso) + '">' +
       '<label for="aTitle">Title</label><input id="aTitle" type="text" autocomplete="off" value="' +
-        (editing ? esc(row.title || '') : '') + '">' +
+        (has ? esc(row.title || '') : '') + '">' +
       '<label>Whose memory is it?</label>' +
       '<div class="who" id="aWho">' +
         ['', 'askar', 'asem'].map(function(v){
           const label = v ? esc(NAMES[v]) : 'Both of us';
-          const on = editing ? ((row.author || '') === v) : (v === '');
+          const on = has ? ((row.author || '') === v) : (v === '');
           return '<button type="button" data-v="' + v + '" aria-pressed="' + on + '">' + label + '</button>';
         }).join('') +
       '</div>' +
       '<label for="aPlace">Place</label><input id="aPlace" type="text" autocomplete="off" value="' +
-        (editing ? esc(row.place || '') : '') + '">' +
+        (has ? esc(row.place || '') : '') + '">' +
       '<label for="aText">What happened</label>' +
       '<textarea id="aText" rows="5">' +
-        (editing && Array.isArray(row.body) ? esc(row.body.join('\n\n')) : '') + '</textarea>' +
+        (has && Array.isArray(row.body) ? esc(row.body.join('\n\n')) : '') + '</textarea>' +
       '<label for="aQuote">Something one of you said</label>' +
       '<input id="aQuote" type="text" autocomplete="off" value="' +
-        (editing && row.quote ? esc(row.quote.text || '') : '') + '">' +
+        (has && row.quote ? esc(row.quote.text || '') : '') + '">' +
       '<select id="aQuoteBy"><option value="">—</option>' +
         '<option value="askar">' + esc(NAMES.askar) + '</option>' +
         '<option value="asem">' + esc(NAMES.asem) + '</option></select>' +
@@ -962,8 +963,8 @@ if (typeof loadStory === 'function'){
       '<button class="cancel" type="button" id="aCancel">Cancel</button></div>' +
       '<p class="said" id="aSaid"></p>',
       function(){
-        let who = editing ? (row.author || '') : '';
-        if (editing && row.quote && row.quote.by)
+        let who = has ? (row.author || '') : '';
+        if (has && row.quote && row.quote.by)
           document.getElementById('aQuoteBy').value = row.quote.by;
         const said = document.getElementById('aSaid');
         const go   = document.getElementById('aGo');
@@ -1047,7 +1048,26 @@ if (typeof loadStory === 'function'){
     });
   }
 
-  window.__redrawBar = function(){ drawBar(); addRemovers(); };
+  /* A link may carry a whole entry in its fragment, so one can be written
+     somewhere else and opened here ready to save. It only ever fills the
+     sheet in - nothing is written without the Save being pressed - and the
+     fragment is dropped from the address afterwards. */
+  function fromLink(){
+    const m = /^#add=([A-Za-z0-9\-_]+)$/.exec(location.hash || '');
+    if (!m || !DB.signedIn()) return;
+    let row;
+    try {
+      const b64 = m[1].replace(/-/g,'+').replace(/_/g,'/');
+      const bin = atob(b64 + '==='.slice((b64.length + 3) % 4));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      row = JSON.parse(new TextDecoder().decode(bytes));
+    } catch (e){ return; }
+    history.replaceState(null, '', location.pathname);
+    entryForm(row);
+  }
+
+  window.__redrawBar = function(){ drawBar(); addRemovers(); fromLink(); };
   drawBar();
 })();
 </script>
