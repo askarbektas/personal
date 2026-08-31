@@ -100,7 +100,7 @@ const DB = (function(){
     const r = await fetch(base + '/rest/v1/entries?select=*&order=happened_on.asc', {
       headers: headers(true)
     });
-    if (r.status === 401 || r.status === 403) { const e = new Error('not signed in'); e.auth = true; throw e; }
+    if (r.status === 401 || r.status === 403) { const e = new Error('not readable'); e.auth = true; throw e; }
     if (!r.ok) throw new Error('could not read the story (' + r.status + ')');
     return (await r.json()).map(toEntry);
   }
@@ -110,6 +110,13 @@ const DB = (function(){
      are asked for in one request rather than one per photograph. */
   async function signPhotos(paths){
     if (!paths.length) return {};
+    if (SUPABASE.publicPhotos){
+      const out = {};
+      paths.forEach(function(p){
+        out[p] = base + '/storage/v1/object/public/photos/' + encodeURIComponent(p);
+      });
+      return out;                       // a public bucket needs no signing
+    }
     const r = await fetch(base + '/storage/v1/object/sign/photos', {
       method:'POST', headers: headers(true),
       body: JSON.stringify({ expiresIn: 3600, paths: paths })
@@ -203,7 +210,7 @@ function loadStory(){
     el.onerror = function(){ reject(new Error('story.js did not load')); };
     document.head.appendChild(el);
   }).then(function(){
-    if (!DB.configured || !DB.signedIn()) return;      // the file's own STORY stands
+    if (!DB.configured) return;                       // the file's own STORY stands
     /* keep the file's own entries: the page compares them with what the
        database holds so it can offer to move across whatever is missing,
        not only on the first sign-in */

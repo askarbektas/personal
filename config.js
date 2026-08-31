@@ -22,6 +22,11 @@ const SUPABASE = {
      there. If Supabase ever refuses the domain, change it here and both
      of you sign in with the new one. */
   loginDomain: 'samesky.app',
+
+  /* The story is readable by anyone who has the link, so photographs are
+     fetched straight from the bucket rather than through a signed link.
+     Set this back to false if the bucket is ever made private again. */
+  publicPhotos: true,
   url:     'https://naevdpqlhmsqcfyrorsd.supabase.co',
   key:     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hZXZkcHFsaG1zcWNmeXJvcnNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMDkwMDQsImV4cCI6MjEwMzY4NTAwNH0.uQunJANIdXdTJqwV3REvBk67p30I4DnTPUiPcW71jPs'
 };
